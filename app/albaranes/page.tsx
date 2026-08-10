@@ -1,5 +1,5 @@
-import { DashboardShell } from "@/components/layout/DashboardShell";
+import { DashboardRouteContent } from "@/features/dashboard/DashboardRouteContent";
 
 export default function DeliveryNotesPage() {
-  return <DashboardShell section="Albaranes" />;
+  return <DashboardRouteContent section="Albaranes" />;
 }

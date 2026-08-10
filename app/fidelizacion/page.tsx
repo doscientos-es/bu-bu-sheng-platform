@@ -1,5 +1,5 @@
-import { DashboardShell } from "@/components/layout/DashboardShell";
+import { DashboardRouteContent } from "@/features/dashboard/DashboardRouteContent";
 
 export default function LoyaltyPage() {
-  return <DashboardShell section="Fidelización" />;
+  return <DashboardRouteContent section="Fidelización" />;
 }

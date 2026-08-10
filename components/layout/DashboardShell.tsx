@@ -1,97 +1,93 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { type ReactNode, useState } from "react";
+import { DashboardContext } from "@/features/dashboard/DashboardContext";
 import { useDashboardData } from "@/features/dashboard/useDashboardData";
-import { DeliveryNotesSection } from "@/features/delivery-notes/DeliveryNotesSection";
-import { LoyaltySection } from "@/features/loyalty/LoyaltySection";
-import { OverviewSection } from "@/features/overview/OverviewSection";
 import { ALL_STORES_ID, ALL_STORES_LABEL } from "@/lib/demo";
 import type { Section } from "@/lib/types";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
 type DashboardShellProps = {
-  section: Section;
+  children: ReactNode;
 };
 
-export function DashboardShell({ section }: DashboardShellProps) {
+const SKELETON_CARD_IDS = ["purchases", "reviews", "customers", "birthdays"] as const;
+const SECTION_BY_PATH: Record<string, Section> = {
+  "/": "Resumen",
+  "/albaranes": "Albaranes",
+  "/fidelizacion": "Fidelización",
+};
+
+export function DashboardShell({ children }: DashboardShellProps) {
+  const pathname = usePathname();
+  const section = SECTION_BY_PATH[pathname] ?? "Resumen";
   const [storeId, setStoreId] = useState(ALL_STORES_ID);
-  const [query, setQuery] = useState("");
   const { createCustomer, createDeliveryNote, data, error, isLoading, preparePromotion } =
     useDashboardData();
   const notes = data?.notes ?? [];
   const selectedStoreLabel =
     data?.stores.find((store) => store.id === storeId)?.name ?? ALL_STORES_LABEL;
-  const filteredNotes = useMemo(
-    () =>
-      notes.filter(
-        (note) =>
-          (storeId === ALL_STORES_ID || note.store === selectedStoreLabel) &&
-          `${note.supplier} ${note.store}`.toLowerCase().includes(query.toLowerCase()),
-      ),
-    [notes, query, selectedStoreLabel, storeId],
-  );
-
-  if (isLoading) {
-    return (
-      <main className="app-shell dashboard-state">
-        <div>
-          <span className="loading-dot" />
-          Cargando tu espacio de trabajo…
-        </div>
-      </main>
-    );
-  }
-  if (error || !data)
-    return (
-      <main className="app-shell dashboard-state">
-        <div>
-          <strong>No hemos podido cargar el panel.</strong>
-          <p>{error ?? "Comprueba tu conexión e inténtalo de nuevo."}</p>
-        </div>
-      </main>
-    );
-
-  const defaultStoreId = data.stores[0]?.id;
+  const stores = data?.stores ?? [];
+  const defaultStoreId = stores[0]?.id;
 
   return (
     <main className="app-shell">
       <Sidebar section={section} />
       <section className="content">
-        <Topbar
-          section={section}
-          stores={data.stores}
-          storeId={storeId}
-          onStoreChange={setStoreId}
-        />
+        <Topbar section={section} stores={stores} storeId={storeId} onStoreChange={setStoreId} />
         <div className="page-content">
-          {section === "Resumen" && <OverviewSection customers={data.customers} notes={notes} />}
+          {isLoading && <DashboardSkeleton />}
 
-          {section === "Albaranes" && (
-            <DeliveryNotesSection
-              store={selectedStoreLabel}
-              notes={filteredNotes}
-              query={query}
-              onQueryChange={setQuery}
-              onScannedNote={(file) => {
-                const targetStoreId = storeId === ALL_STORES_ID ? defaultStoreId : storeId;
-                if (!targetStoreId)
-                  return Promise.reject(new Error("No hay cafeterías disponibles."));
-                return createDeliveryNote(targetStoreId, file);
-              }}
+          {!isLoading && (error || !data) && (
+            <DashboardContentError
+              message={error ?? "Comprueba tu conexión e inténtalo de nuevo."}
             />
           )}
 
-          {section === "Fidelización" && (
-            <LoyaltySection
-              customers={data.customers}
-              stores={data.stores}
-              onCreateCustomer={createCustomer}
-              onPreparePromotion={preparePromotion}
-            />
+          {!isLoading && data && (
+            <DashboardContext.Provider
+              value={{
+                createCustomer,
+                createDeliveryNote,
+                data,
+                defaultStoreId,
+                notes,
+                preparePromotion,
+                selectedStoreLabel,
+                storeId,
+              }}
+            >
+              {children}
+            </DashboardContext.Provider>
           )}
         </div>
       </section>
     </main>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="dashboard-skeleton" aria-label="Cargando contenido" role="status">
+      <div className="skeleton-title" />
+      <div className="skeleton-copy" />
+      <div className="skeleton-metrics">
+        {SKELETON_CARD_IDS.map((id) => (
+          <div className="skeleton-card" key={id} />
+        ))}
+      </div>
+      <div className="skeleton-workspace" />
+    </div>
+  );
+}
+
+function DashboardContentError({ message }: { message: string }) {
+  return (
+    <div className="dashboard-content-error" role="alert">
+      <strong>No hemos podido cargar esta vista.</strong>
+      <p>{message}</p>
+    </div>
   );
 }

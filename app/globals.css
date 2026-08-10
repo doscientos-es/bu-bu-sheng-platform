@@ -1056,6 +1056,385 @@ td {
   }
 }
 
+/* Precision pass: Jakarta typography, tighter rail, and route-safe content states. */
+body {
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings:
+    "ss01" 1,
+    "cv02" 1;
+}
+
+.sidebar {
+  width: 188px;
+  padding: 11px 8px;
+  background: #fbfbfc;
+}
+
+.brand {
+  gap: 8px;
+  padding: 2px 7px 15px;
+}
+
+.brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.brand strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.brand span {
+  display: none;
+}
+
+.workspace-label {
+  padding: 0 7px 6px;
+  color: #9a9a9a;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.sidebar-search {
+  min-height: 31px;
+  margin: 0 0 9px;
+  padding: 0 8px;
+  border-color: #e7e7e9;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 10px;
+}
+
+.nav-item {
+  min-height: 33px;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #707178;
+  font-size: 11px;
+}
+
+.nav-item.active {
+  border-color: #e7e7e9;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 3%);
+}
+
+.nav-item:hover {
+  background: #f3f3f4;
+}
+
+.sidebar-bottom>.nav-item {
+  color: #84848a;
+}
+
+.user-card {
+  margin-top: 8px;
+  padding: 11px 6px 0;
+}
+
+.user-card strong {
+  font-size: 10px;
+}
+
+.user-card span {
+  font-size: 8px;
+}
+
+.topbar {
+  height: 48px;
+  padding: 0 20px;
+  background: rgb(255 255 255 / 84%);
+}
+
+.crumb {
+  font-size: 11px;
+}
+
+.top-actions {
+  gap: 9px;
+}
+
+.store-select {
+  min-height: 30px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.store-select select {
+  font-size: 10px;
+}
+
+.icon-button {
+  padding: 6px;
+}
+
+.page-content {
+  padding: 24px 20px 42px;
+}
+
+.dashboard-intro {
+  gap: 16px;
+}
+
+.dashboard-path {
+  margin-bottom: 8px;
+  font-size: 10px;
+}
+
+.dashboard-intro h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.dashboard-intro h1 span {
+  font-size: 16px;
+}
+
+.dashboard-intro>div>p:last-child {
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.period-button,
+.more-button {
+  min-height: 29px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.more-button {
+  width: 29px;
+}
+
+.dashboard-metrics {
+  gap: 9px;
+  margin: 14px 0 10px;
+}
+
+.metric-card {
+  min-height: 94px;
+  padding: 11px;
+  border-color: #e8e8ea;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 2%);
+}
+
+.metric-card::before {
+  height: 27px;
+}
+
+.metric-card .metric-icon {
+  top: 9px;
+  right: 9px;
+  width: 20px;
+  height: 20px;
+}
+
+.metric-card .metric-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.metric-card p {
+  min-height: 17px;
+  margin-bottom: 7px;
+  font-size: 10px;
+}
+
+.metric-card strong {
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.metric-card small {
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.metric-trend {
+  width: 16px;
+  height: 16px;
+}
+
+.metric-trend svg {
+  width: 11px;
+  height: 11px;
+}
+
+.metric-sparkline {
+  right: 9px;
+  bottom: 9px;
+  width: 58px;
+  height: 21px;
+}
+
+.overview-workspace {
+  gap: 9px;
+}
+
+.activity-chart-panel,
+.recent-activity-panel {
+  min-height: 290px;
+  border-radius: 8px;
+}
+
+.dashboard-panel-heading {
+  padding: 12px 14px;
+}
+
+.dashboard-panel-heading h2 {
+  font-size: 12px;
+}
+
+.panel-kicker {
+  font-size: 8px;
+}
+
+.chart-summary {
+  padding: 12px 14px 0;
+}
+
+.chart-summary strong {
+  font-size: 23px;
+}
+
+.bar-chart {
+  height: 157px;
+  gap: 13px;
+  margin: 11px 14px 14px;
+}
+
+.activity-count {
+  padding: 10px 14px;
+}
+
+.activity-list {
+  padding: 0 14px 6px;
+}
+
+.activity-item {
+  padding: 8px 0;
+}
+
+.overview-table-panel {
+  margin-top: 9px;
+  border-radius: 8px;
+}
+
+.overview-table-panel th,
+.overview-table-panel td {
+  padding: 10px 14px;
+  font-size: 10px;
+}
+
+.dashboard-skeleton {
+  animation: skeleton-fade 180ms ease-out;
+}
+
+.skeleton-title,
+.skeleton-copy,
+.skeleton-card,
+.skeleton-workspace {
+  border-radius: 8px;
+  background: linear-gradient(100deg, #f0f0f1 25%, #f8f8f8 38%, #f0f0f1 52%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: min(320px, 60%);
+  height: 26px;
+}
+
+.skeleton-copy {
+  width: min(460px, 80%);
+  height: 12px;
+  margin-top: 10px;
+}
+
+.skeleton-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.skeleton-card {
+  height: 94px;
+}
+
+.skeleton-workspace {
+  height: 300px;
+  margin-top: 10px;
+}
+
+.dashboard-content-error {
+  padding: 22px;
+  border: 1px solid #f0d9d7;
+  border-radius: 8px;
+  background: #fffafa;
+}
+
+.dashboard-content-error strong {
+  font-size: 13px;
+}
+
+.dashboard-content-error p {
+  margin: 5px 0 0;
+  color: #777;
+  font-size: 11px;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes skeleton-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 188px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    width: 100%;
+  }
+
+  .skeleton-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .skeleton-workspace {
+    height: 420px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .skeleton-title,
+  .skeleton-copy,
+  .skeleton-card,
+  .skeleton-workspace,
+  .dashboard-skeleton {
+    animation: none;
+  }
+}
+
 /* Product UI refresh: calm light-mode workspace with a single clear visual hierarchy. */
 :root {
   --ink: #171717;
@@ -1193,7 +1572,7 @@ select {
   padding: 0 2px;
 }
 
-.sidebar-bottom > .nav-item {
+.sidebar-bottom>.nav-item {
   color: #777;
 }
 
@@ -1798,7 +2177,7 @@ td {
   text-align: center;
 }
 
-.dashboard-state > div {
+.dashboard-state>div {
   max-width: 360px;
   padding: 24px;
   border: 1px solid var(--line);
@@ -2040,7 +2419,7 @@ td {
   height: 15px;
 }
 
-.sidebar-bottom > .nav-item {
+.sidebar-bottom>.nav-item {
   min-height: 36px;
 }
 
@@ -2094,7 +2473,7 @@ td {
   font-size: 19px;
 }
 
-.dashboard-intro > div > p:last-child {
+.dashboard-intro>div>p:last-child {
   margin: 7px 0 0;
   color: #777;
   font-size: 12px;
@@ -2293,7 +2672,7 @@ td {
   letter-spacing: -0.05em;
 }
 
-.chart-summary > span {
+.chart-summary>span {
   color: #777;
   font-size: 11px;
 }
@@ -2420,7 +2799,7 @@ td {
   white-space: nowrap;
 }
 
-.activity-item > span {
+.activity-item>span {
   align-self: start;
   color: #999;
   font-size: 9px;
@@ -2455,6 +2834,10 @@ td {
 }
 
 @media (max-width: 640px) {
+  .sidebar {
+    width: 100%;
+  }
+
   .sidebar-search {
     display: none;
   }
@@ -2511,4 +2894,14 @@ td {
     width: 100%;
     margin-left: 0;
   }
+}
+
+/* Keep the product typography deterministic after the legacy theme rules above. */
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01" 1, "cv02" 1;
 }

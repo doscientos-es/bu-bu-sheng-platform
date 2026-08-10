@@ -1,5 +1,5 @@
-import { DashboardShell } from "@/components/layout/DashboardShell";
+import { DashboardRouteContent } from "@/features/dashboard/DashboardRouteContent";
 
 export default function Home() {
-  return <DashboardShell section="Resumen" />;
+  return <DashboardRouteContent section="Resumen" />;
 }
