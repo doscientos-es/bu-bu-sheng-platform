@@ -1,3 +1,7 @@
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { RegisterVisitCard } from "@/features/loyalty/RegisterVisitCard";
+import type { Customer, DeliveryNote, Store } from "@/lib/types";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -7,20 +11,28 @@ import {
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
-import { MetricCard } from "@/components/ui/MetricCard";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import type { Customer, DeliveryNote } from "@/lib/types";
+import { PurchaseActivityChart } from "./PurchaseActivityChart";
 
 type OverviewSectionProps = {
   customers: Customer[];
+  defaultStoreId?: string;
   notes: DeliveryNote[];
+  stores: Store[];
+  onRegisterVisit: (customerId: string, storeId: string) => Promise<{ issued: number }>;
 };
 
-export function OverviewSection({ customers, notes }: OverviewSectionProps) {
+const WEEKLY_ACTIVITY = [34, 58, 43, 75, 52, 65, 48];
+const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
+
+export function OverviewSection({
+  customers,
+  defaultStoreId,
+  notes,
+  stores,
+  onRegisterVisit,
+}: OverviewSectionProps) {
   const priceIncreaseCount = notes.filter((note) => note.tone === "warning").length;
   const upcomingBirthdays = customers.filter((customer) => customer.birthday === "Hoy").length;
-  const weeklyActivity = [34, 58, 43, 75, 52, 65, 48];
-  const weekdays = ["L", "M", "X", "J", "V", "S", "D"];
   const currentDate = new Intl.DateTimeFormat("es-ES", {
     day: "numeric",
     month: "long",
@@ -57,6 +69,7 @@ export function OverviewSection({ customers, notes }: OverviewSectionProps) {
           accent="blue"
           icon={FileText}
           trend="up"
+          href="/albaranes"
         />
         <MetricCard
           label="Precios en revisión"
@@ -65,6 +78,7 @@ export function OverviewSection({ customers, notes }: OverviewSectionProps) {
           accent="purple"
           icon={CircleAlert}
           trend="down"
+          href="/albaranes"
         />
         <MetricCard
           label="Clientes activos"
@@ -73,6 +87,7 @@ export function OverviewSection({ customers, notes }: OverviewSectionProps) {
           accent="green"
           icon={UsersRound}
           trend="up"
+          href="/clientes"
         />
         <MetricCard
           label="Cumpleaños hoy"
@@ -81,8 +96,17 @@ export function OverviewSection({ customers, notes }: OverviewSectionProps) {
           accent="orange"
           icon={CalendarDays}
           trend="up"
+          href="/clientes"
         />
       </div>
+
+      <RegisterVisitCard
+        customers={customers}
+        defaultStoreId={defaultStoreId}
+        stores={stores}
+        onRegister={onRegisterVisit}
+        variant="widget"
+      />
 
       <div className="overview-workspace">
         <section className="panel activity-chart-panel">
@@ -100,20 +124,7 @@ export function OverviewSection({ customers, notes }: OverviewSectionProps) {
               +12% <span>frente a la semana anterior</span>
             </small>
           </div>
-          <div
-            className="bar-chart"
-            role="img"
-            aria-label="Actividad de compras de los últimos siete días"
-          >
-            {weeklyActivity.map((height, index) => (
-              <div className="chart-column" key={weekdays[index]}>
-                <div className="chart-bar-track">
-                  <div className="chart-bar" style={{ height: `${height}%` }} />
-                </div>
-                <span>{weekdays[index]}</span>
-              </div>
-            ))}
-          </div>
+          <PurchaseActivityChart values={WEEKLY_ACTIVITY} weekdays={WEEKDAYS} />
         </section>
 
         <aside className="panel recent-activity-panel">

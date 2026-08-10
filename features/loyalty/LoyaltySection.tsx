@@ -1,15 +1,16 @@
 "use client";
 
-import { ChevronDown, Mail, Plus } from "lucide-react";
-import { useState } from "react";
 import { MetricCard } from "@/components/ui/MetricCard";
 import type { Customer, Store } from "@/lib/types";
-import { BirthdayEmailModal } from "./BirthdayEmailModal";
-import { BirthdaysTable } from "./BirthdaysTable";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { CustomersTable } from "./CustomersTable";
 import { NewCustomerModal } from "./NewCustomerModal";
+import { RegisterVisitCard } from "./RegisterVisitCard";
 
 type LoyaltySectionProps = {
   customers: Customer[];
+  defaultStoreId?: string;
   stores: Store[];
   onCreateCustomer: (input: {
     birthday: string;
@@ -18,27 +19,27 @@ type LoyaltySectionProps = {
     name: string;
     storeId: string;
   }) => Promise<void>;
-  onPreparePromotion: (promotionAssignmentId: string) => Promise<void>;
+  onRegisterVisit: (customerId: string, storeId: string) => Promise<{ issued: number }>;
 };
 
 export function LoyaltySection({
   customers,
+  defaultStoreId,
   stores,
   onCreateCustomer,
-  onPreparePromotion,
+  onRegisterVisit,
 }: LoyaltySectionProps) {
   const [showCustomer, setShowCustomer] = useState(false);
-  const [emailCustomer, setEmailCustomer] = useState<Customer | null>(null);
-  const preparedPromotions = customers.filter((customer) => customer.status === "Preparado").length;
-  const upcomingBirthdays = customers.filter((customer) => customer.birthday === "Hoy").length;
+  const totalVisits = customers.reduce((total, customer) => total + customer.visits, 0);
+  const customersWithConsent = customers.filter((customer) => customer.hasEmailConsent).length;
 
   return (
-    <>
+    <section className="customers-page">
       <div className="section-heading">
         <div>
           <p className="eyebrow">RELACIÓN CON CLIENTES</p>
-          <h1>Fidelización</h1>
-          <p className="subtitle">Convierte cada visita en una relación más cercana.</p>
+          <h1>Clientes</h1>
+          <p className="subtitle">Consulta clientes y registra una visita en segundos.</p>
         </div>
         <button type="button" className="primary-button" onClick={() => setShowCustomer(true)}>
           <Plus size={17} />
@@ -54,15 +55,15 @@ export function LoyaltySection({
           accent="green"
         />
         <MetricCard
-          label="Cumpleaños próximos"
-          value={String(upcomingBirthdays)}
-          detail="En los próximos 7 días"
+          label="Visitas registradas"
+          value={String(totalVisits)}
+          detail="En toda la red"
           accent="blue"
         />
         <MetricCard
-          label="Promociones preparadas"
-          value={String(preparedPromotions)}
-          detail="Este mes"
+          label="Email autorizado"
+          value={String(customersWithConsent)}
+          detail="Han aceptado comunicaciones"
           accent="purple"
         />
       </div>
@@ -70,16 +71,19 @@ export function LoyaltySection({
       <div className="panel table-panel">
         <div className="toolbar">
           <div>
-            <h2>Próximos cumpleaños</h2>
-            <p>Prepara una promoción y envíala por email.</p>
+            <h2>Lista de clientes</h2>
+            <p>Consulta sus visitas y preferencias de comunicación.</p>
           </div>
-          <button type="button" className="filter-button">
-            <Mail size={15} />
-            Email <ChevronDown size={15} />
-          </button>
         </div>
-        <BirthdaysTable customers={customers} onPrepareEmail={setEmailCustomer} />
+        <CustomersTable customers={customers} />
       </div>
+
+      <RegisterVisitCard
+        customers={customers}
+        defaultStoreId={defaultStoreId}
+        stores={stores}
+        onRegister={onRegisterVisit}
+      />
 
       {showCustomer && (
         <NewCustomerModal
@@ -91,18 +95,6 @@ export function LoyaltySection({
           }}
         />
       )}
-
-      {emailCustomer && (
-        <BirthdayEmailModal
-          customer={emailCustomer}
-          onClose={() => setEmailCustomer(null)}
-          onMarkAsPrepared={async () => {
-            if (!emailCustomer.promotionAssignmentId) return;
-            await onPreparePromotion(emailCustomer.promotionAssignmentId);
-            setEmailCustomer(null);
-          }}
-        />
-      )}
-    </>
+    </section>
   );
 }

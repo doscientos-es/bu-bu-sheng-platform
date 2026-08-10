@@ -16,12 +16,18 @@ La demo usa Supabase para leer y escribir cafeterías, albaranes, clientes y pro
 1. Crea un proyecto Supabase independiente para la demo.
 2. Copia la URL y la publishable key a `.env.local`.
 3. Mantén `SUPABASE_SECRET_KEY` únicamente en servidor. `SUPABASE_JWKS_URL` se reserva para una futura integración de autenticación.
-4. Ejecuta `supabase/schema.sql` y después `supabase/seed.sql` desde el SQL Editor.
+4. Para una instalación nueva, ejecuta `supabase/schema.sql` y después `supabase/seed.sql` desde el SQL Editor. Para una instalación existente, ejecuta la migración más reciente de `supabase/migrations`.
 5. Crea un bucket privado llamado `delivery-notes`.
 6. El seed es idempotente y puede ejecutarse de nuevo para restaurar los datos iniciales.
 7. Usa `DEMO_MODE=false` cuando la conexión esté configurada.
 
 ## Activar Azure Document Intelligence
+
+Por defecto, la demo no consume créditos: deja `OCR_PROVIDER=mock`. Seleccionar un documento
+devuelve siempre un albarán de café de ejemplo editable, incluida una cantidad vacía para validar
+la revisión humana.
+
+Para activar Azure explícitamente:
 
 1. Entra en [portal.azure.com](https://portal.azure.com).
 2. Crea un recurso de Azure AI Document Intelligence.
@@ -44,6 +50,10 @@ El endpoint `/api/ocr` mantiene la clave en el servidor y usa la API REST de Azu
 ## Email
 
 El comportamiento por defecto es mock: prepara el email y lo registra, pero no lo envía. Para producción habrá que configurar un proveedor, un dominio remitente y consentimiento válido.
+
+## Automatizaciones de fidelización
+
+Las visitas se procesan al registrarse en la aplicación. Los cumpleaños y la inactividad se procesan cada día mediante `GET /api/loyalty/run`; la ruta requiere `Authorization: Bearer <LOYALTY_CRON_SECRET>`. En Vercel, `vercel.json` la ejecuta diariamente a las 08:00 UTC: define `CRON_SECRET` o `LOYALTY_CRON_SECRET` en las variables de entorno.
 
 ## Datos sensibles
 

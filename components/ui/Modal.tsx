@@ -1,3 +1,4 @@
+import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -5,23 +6,26 @@ type ModalProps = {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 };
 
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, className }: ModalProps) {
   return (
-    <div className="modal-backdrop" role="presentation">
-      <div className="modal" role="dialog" aria-modal="true">
-        <div className="modal-heading">
-          <div>
-            <p className="eyebrow">DEMO</p>
-            <h2>{title}</h2>
-          </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Cerrar">
-            <X size={18} />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
+    <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="modal-backdrop" />
+        <Dialog.Viewport className="modal-viewport">
+          <Dialog.Popup className={`modal ${className ?? ""}`}>
+            <div className="modal-heading">
+              <Dialog.Title>{title}</Dialog.Title>
+              <Dialog.Close type="button" className="icon-button" aria-label="Cerrar">
+                <X size={18} />
+              </Dialog.Close>
+            </div>
+            {children}
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

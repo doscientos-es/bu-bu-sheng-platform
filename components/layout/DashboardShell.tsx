@@ -17,15 +17,24 @@ const SKELETON_CARD_IDS = ["purchases", "reviews", "customers", "birthdays"] as 
 const SECTION_BY_PATH: Record<string, Section> = {
   "/": "Resumen",
   "/albaranes": "Albaranes",
-  "/fidelizacion": "Fidelización",
+  "/clientes": "Clientes",
+  "/configuracion": "Configuración",
 };
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const pathname = usePathname();
   const section = SECTION_BY_PATH[pathname] ?? "Resumen";
   const [storeId, setStoreId] = useState(ALL_STORES_ID);
-  const { createCustomer, createDeliveryNote, data, error, isLoading, preparePromotion } =
-    useDashboardData();
+  const {
+    createCustomer,
+    createDeliveryNote,
+    data,
+    error,
+    isLoading,
+    preparePromotion,
+    registerVisit,
+    saveLoyaltyRule,
+  } = useDashboardData();
   const notes = data?.notes ?? [];
   const selectedStoreLabel =
     data?.stores.find((store) => store.id === storeId)?.name ?? ALL_STORES_LABEL;
@@ -55,7 +64,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 defaultStoreId,
                 notes,
                 preparePromotion,
+                registerVisit,
+                saveLoyaltyRule,
                 selectedStoreLabel,
+                setStoreId,
                 storeId,
               }}
             >

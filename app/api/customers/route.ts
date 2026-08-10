@@ -38,34 +38,13 @@ export async function POST(request: Request) {
       .single();
     if (customerError) throw customerError;
 
-    const [{ error: consentError }, { data: promotion, error: promotionError }] = await Promise.all(
-      [
-        supabase.from("customer_consents").insert({
-          customer_id: customer.id,
-          channel: "email",
-          granted: input.consent,
-          granted_at: input.consent ? new Date().toISOString() : null,
-        }),
-        supabase
-          .from("promotions")
-          .select("id")
-          .eq("organization_id", DEMO_ORGANIZATION_ID)
-          .eq("active", true)
-          .order("created_at")
-          .limit(1)
-          .single(),
-      ],
-    );
-    if (consentError) throw consentError;
-    if (promotionError) throw promotionError;
-
-    const { error: assignmentError } = await supabase.from("customer_promotions").insert({
+    const { error: consentError } = await supabase.from("customer_consents").insert({
       customer_id: customer.id,
-      promotion_id: promotion.id,
-      scheduled_for: input.birthday,
-      status: "pending",
+      channel: "email",
+      granted: input.consent,
+      granted_at: input.consent ? new Date().toISOString() : null,
     });
-    if (assignmentError) throw assignmentError;
+    if (consentError) throw consentError;
     return NextResponse.json(await getCustomerById(customer.id), { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError)

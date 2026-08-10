@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Customer, DashboardData, DeliveryNote } from "@/lib/types";
+import type {
+  Customer,
+  DashboardData,
+  DeliveryNoteDraft,
+  DeliveryNoteSaveResult,
+  LoyaltyRule,
+} from "@/lib/types";
 
 type NewCustomer = {
   birthday: string;
@@ -35,8 +41,8 @@ export function useDashboardData() {
     });
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (dashboardCache) {
+  const refresh = useCallback(async (force = false) => {
+    if (dashboardCache && !force) {
       setData(dashboardCache);
       setIsLoading(false);
       return;
@@ -60,15 +66,17 @@ export function useDashboardData() {
   }, [refresh]);
 
   const createDeliveryNote = useCallback(
-    async (storeId: string, file: File) => {
+    async (storeId: string, file: File, draft: DeliveryNoteDraft) => {
       const formData = new FormData();
       formData.set("storeId", storeId);
       formData.set("file", file);
-      const note = await requestJson<DeliveryNote>("/api/delivery-notes", {
+      formData.set("draft", JSON.stringify(draft));
+      const result = await requestJson<DeliveryNoteSaveResult>("/api/delivery-notes", {
         method: "POST",
         body: formData,
       });
-      commitData((current) => ({ ...current, notes: [note, ...current.notes] }));
+      commitData((current) => ({ ...current, notes: [result.note, ...current.notes] }));
+      return result;
     },
     [commitData],
   );
@@ -100,5 +108,45 @@ export function useDashboardData() {
     [commitData],
   );
 
-  return { createCustomer, createDeliveryNote, data, error, isLoading, preparePromotion, refresh };
+  const saveLoyaltyRule = useCallback(
+    async (rule: LoyaltyRule) => {
+      const updatedRule = await requestJson<LoyaltyRule>("/api/loyalty/rules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rule),
+      });
+      commitData((current) => ({
+        ...current,
+        loyaltyRules: current.loyaltyRules.map((item) =>
+          item.id === updatedRule.id ? updatedRule : item,
+        ),
+      }));
+    },
+    [commitData],
+  );
+
+  const registerVisit = useCallback(
+    async (customerId: string, storeId: string) => {
+      const response = await requestJson<{ result: { issued: number } }>("/api/loyalty/visits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId, storeId }),
+      });
+      await refresh(true);
+      return response.result;
+    },
+    [refresh],
+  );
+
+  return {
+    createCustomer,
+    createDeliveryNote,
+    data,
+    error,
+    isLoading,
+    preparePromotion,
+    refresh,
+    registerVisit,
+    saveLoyaltyRule,
+  };
 }

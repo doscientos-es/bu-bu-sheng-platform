@@ -121,9 +121,47 @@ create table if not exists message_events (
   created_at timestamptz not null default now()
 );
 
+create table if not exists loyalty_rules (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references organizations(id) on delete cascade,
+  type text not null check (type in ('visit_milestone','birthday','inactivity')),
+  active boolean not null default true,
+  threshold integer check (threshold is null or threshold > 0),
+  reward_name text not null,
+  reward_description text not null default '',
+  validity_days integer not null default 30 check (validity_days > 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (organization_id, type)
+);
+
+create table if not exists customer_visits (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references organizations(id) on delete cascade,
+  customer_id uuid not null references customers(id) on delete cascade,
+  store_id uuid references stores(id) on delete set null,
+  occurred_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists loyalty_rewards (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references organizations(id) on delete cascade,
+  customer_id uuid not null references customers(id) on delete cascade,
+  rule_id uuid not null references loyalty_rules(id) on delete restrict,
+  period_key text not null,
+  code text not null unique,
+  status text not null default 'prepared' check (status in ('prepared','sent','redeemed','expired')),
+  expires_at date not null,
+  created_at timestamptz not null default now(),
+  unique (customer_id, rule_id, period_key)
+);
+
 create index if not exists stores_org_idx on stores(organization_id);
 create index if not exists delivery_notes_org_date_idx on delivery_notes(organization_id, document_date desc);
 create index if not exists customers_org_birthday_idx on customers(organization_id, birthday);
+create index if not exists customer_visits_customer_occurred_idx on customer_visits(customer_id, occurred_at desc);
+create index if not exists loyalty_rewards_customer_idx on loyalty_rewards(customer_id, created_at desc);
 
 alter table organizations enable row level security;
 alter table stores enable row level security;
@@ -138,6 +176,9 @@ alter table customer_consents enable row level security;
 alter table promotions enable row level security;
 alter table customer_promotions enable row level security;
 alter table message_events enable row level security;
+alter table loyalty_rules enable row level security;
+alter table customer_visits enable row level security;
+alter table loyalty_rewards enable row level security;
 
 create or replace function public.is_member_of(target_org uuid)
 returns boolean language sql stable security invoker
@@ -156,3 +197,6 @@ create policy "members can manage consents" on customer_consents for all to auth
 create policy "members can manage promotions" on promotions for all to authenticated using (public.is_member_of(organization_id)) with check (public.is_member_of(organization_id));
 create policy "members can manage customer promotions" on customer_promotions for all to authenticated using (exists (select 1 from customers c where c.id = customer_promotions.customer_id and public.is_member_of(c.organization_id))) with check (exists (select 1 from customers c where c.id = customer_promotions.customer_id and public.is_member_of(c.organization_id)));
 create policy "members can manage message events" on message_events for all to authenticated using (exists (select 1 from customers c where c.id = message_events.customer_id and public.is_member_of(c.organization_id))) with check (exists (select 1 from customers c where c.id = message_events.customer_id and public.is_member_of(c.organization_id)));
+create policy "members can manage loyalty rules" on loyalty_rules for all to authenticated using (public.is_member_of(organization_id)) with check (public.is_member_of(organization_id));
+create policy "members can manage customer visits" on customer_visits for all to authenticated using (public.is_member_of(organization_id)) with check (public.is_member_of(organization_id));
+create policy "members can manage loyalty rewards" on loyalty_rewards for all to authenticated using (public.is_member_of(organization_id)) with check (public.is_member_of(organization_id));

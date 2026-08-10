@@ -1,6 +1,15 @@
 import { DEMO_ORGANIZATION_ID } from "@/lib/demo";
+import { ruleFromRow } from "@/lib/loyalty";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import type { Customer, DashboardData, DeliveryNote, StatusTone, Store } from "@/lib/types";
+import type {
+  Customer,
+  DashboardData,
+  DeliveryNote,
+  LoyaltyReward,
+  LoyaltyRuleType,
+  StatusTone,
+  Store,
+} from "@/lib/types";
 
 type NoteRow = {
   id: string;
@@ -21,11 +30,29 @@ type CustomerRow = {
   birthday: string | null;
   email: string;
   full_name: string;
-  customer_promotions: Array<{
-    id: string;
-    status: "pending" | "prepared" | "sent" | "redeemed";
-    promotions: Array<{ name: string }>;
-  }>;
+  customer_consents: Array<{ granted: boolean }>;
+  customer_visits: Array<{ occurred_at: string }>;
+};
+
+type LoyaltyRuleRow = {
+  id: string;
+  type: LoyaltyRuleType;
+  active: boolean;
+  threshold: number | null;
+  reward_name: string;
+  reward_description: string;
+  validity_days: number;
+};
+
+type LoyaltyRewardRow = {
+  id: string;
+  customer_id: string;
+  code: string;
+  status: "prepared" | "sent" | "redeemed" | "expired";
+  expires_at: string;
+  created_at: string;
+  loyalty_rules: Array<{ reward_name: string; type: LoyaltyRuleType }>;
+  customers: Array<{ full_name: string }>;
 };
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
@@ -89,48 +116,85 @@ function mapNote(row: NoteRow): DeliveryNote {
 }
 
 function mapCustomer(row: CustomerRow): Customer {
-  const promotion = row.customer_promotions[0];
+  const lastVisit = row.customer_visits.reduce<string | null>(
+    (latest, visit) => (!latest || visit.occurred_at > latest ? visit.occurred_at : latest),
+    null,
+  );
   return {
     id: row.id,
     name: row.full_name,
     email: row.email,
     birthday: formatBirthday(row.birthday),
-    promo: promotion?.promotions[0]?.name ?? "Sin promoción",
-    promotionAssignmentId: promotion?.id ?? null,
-    status: promotion?.status === "prepared" ? "Preparado" : "Pendiente",
+    hasEmailConsent: row.customer_consents.some((consent) => consent.granted),
+    visits: row.customer_visits.length,
+    lastVisit,
+  };
+}
+
+function mapLoyaltyReward(row: LoyaltyRewardRow): LoyaltyReward {
+  return {
+    id: row.id,
+    customerId: row.customer_id,
+    customerName: row.customers[0]?.full_name ?? "Cliente",
+    ruleType: row.loyalty_rules[0]?.type ?? "visit_milestone",
+    rewardName: row.loyalty_rules[0]?.reward_name ?? "Recompensa",
+    code: row.code,
+    status: row.status,
+    expiresAt: row.expires_at,
+    createdAt: row.created_at,
   };
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = getSupabaseAdmin();
-  const [storesResult, notesResult, customersResult] = await Promise.all([
-    supabase
-      .from("stores")
-      .select("id, name")
-      .eq("organization_id", DEMO_ORGANIZATION_ID)
-      .order("name"),
-    supabase
-      .from("delivery_notes")
-      .select(
-        "id, document_date, status, stores(name), suppliers(name), delivery_note_items(comparison_status, quantity, tax_rate, unit_price)",
-      )
-      .eq("organization_id", DEMO_ORGANIZATION_ID)
-      .order("document_date", { ascending: false }),
-    supabase
-      .from("customers")
-      .select("id, birthday, email, full_name, customer_promotions(id, status, promotions(name))")
-      .eq("organization_id", DEMO_ORGANIZATION_ID)
-      .order("birthday"),
-  ]);
+  const [storesResult, notesResult, customersResult, rulesResult, rewardsResult] =
+    await Promise.all([
+      supabase
+        .from("stores")
+        .select("id, name")
+        .eq("organization_id", DEMO_ORGANIZATION_ID)
+        .order("name"),
+      supabase
+        .from("delivery_notes")
+        .select(
+          "id, document_date, status, stores(name), suppliers(name), delivery_note_items(comparison_status, quantity, tax_rate, unit_price)",
+        )
+        .eq("organization_id", DEMO_ORGANIZATION_ID)
+        .order("document_date", { ascending: false }),
+      supabase
+        .from("customers")
+        .select(
+          "id, birthday, email, full_name, customer_consents(granted), customer_visits(occurred_at)",
+        )
+        .eq("organization_id", DEMO_ORGANIZATION_ID)
+        .order("birthday"),
+      supabase
+        .from("loyalty_rules")
+        .select("id, type, active, threshold, reward_name, reward_description, validity_days")
+        .eq("organization_id", DEMO_ORGANIZATION_ID)
+        .order("created_at"),
+      supabase
+        .from("loyalty_rewards")
+        .select(
+          "id, customer_id, code, status, expires_at, created_at, loyalty_rules(reward_name, type), customers(full_name)",
+        )
+        .eq("organization_id", DEMO_ORGANIZATION_ID)
+        .order("created_at", { ascending: false })
+        .limit(12),
+    ]);
 
   throwIfError(storesResult.error);
   throwIfError(notesResult.error);
   throwIfError(customersResult.error);
+  throwIfError(rulesResult.error);
+  throwIfError(rewardsResult.error);
 
   return {
     stores: (storesResult.data ?? []) as Store[],
     notes: ((notesResult.data ?? []) as NoteRow[]).map(mapNote),
     customers: ((customersResult.data ?? []) as CustomerRow[]).map(mapCustomer),
+    loyaltyRules: ((rulesResult.data ?? []) as LoyaltyRuleRow[]).map(ruleFromRow),
+    loyaltyRewards: ((rewardsResult.data ?? []) as LoyaltyRewardRow[]).map(mapLoyaltyReward),
   };
 }
 

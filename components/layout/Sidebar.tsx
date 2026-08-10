@@ -6,13 +6,15 @@ import { SECTIONS, type Section } from "@/lib/types";
 const SECTION_ICONS: Record<Section, ComponentType<{ size?: number }>> = {
   Resumen: LayoutDashboard,
   Albaranes: FileText,
-  Fidelización: Users,
+  Clientes: Users,
+  Configuración: Settings2,
 };
 
 const SECTION_HREFS: Record<Section, string> = {
   Resumen: "/",
   Albaranes: "/albaranes",
-  Fidelización: "/fidelizacion",
+  Clientes: "/clientes",
+  Configuración: "/configuracion",
 };
 
 type SidebarProps = {
@@ -51,10 +53,14 @@ export function Sidebar({ section }: SidebarProps) {
         })}
       </nav>
       <div className="sidebar-bottom">
-        <button type="button" className="nav-item">
+        <Link
+          href={SECTION_HREFS.Configuración}
+          className={section === "Configuración" ? "nav-item active" : "nav-item"}
+          aria-current={section === "Configuración" ? "page" : undefined}
+        >
           <Settings2 size={18} />
           Configuración
-        </button>
+        </Link>
         <div className="user-card">
           <div className="avatar">V</div>
           <div>

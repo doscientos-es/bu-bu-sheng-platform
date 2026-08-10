@@ -1,26 +1,38 @@
 "use client";
 
-import { ChevronDown, Search, Store, Upload } from "lucide-react";
-import { useState } from "react";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { ALL_STORES_LABEL } from "@/lib/demo";
-import type { DeliveryNote } from "@/lib/types";
+import { ALL_STORES_ID, ALL_STORES_LABEL } from "@/lib/demo";
+import type {
+  DeliveryNote,
+  DeliveryNoteDraft,
+  DeliveryNoteSaveResult,
+  Store as StoreOption,
+} from "@/lib/types";
+import { Popover } from "@base-ui/react/popover";
+import { Check, ChevronDown, Search, Store, Upload } from "lucide-react";
+import { useState } from "react";
 import { DeliveryNotesTable } from "./DeliveryNotesTable";
 import { UploadNoteModal } from "./UploadNoteModal";
 
 type DeliveryNotesSectionProps = {
   store: string;
+  storeId: string;
+  stores: StoreOption[];
   notes: DeliveryNote[];
   query: string;
   onQueryChange: (query: string) => void;
-  onScannedNote: (file: File) => Promise<void>;
+  onStoreChange: (storeId: string) => void;
+  onScannedNote: (file: File, draft: DeliveryNoteDraft) => Promise<DeliveryNoteSaveResult>;
 };
 
 export function DeliveryNotesSection({
   store,
+  storeId,
+  stores,
   notes,
   query,
   onQueryChange,
+  onStoreChange,
   onScannedNote,
 }: DeliveryNotesSectionProps) {
   const [showUpload, setShowUpload] = useState(false);
@@ -32,7 +44,7 @@ export function DeliveryNotesSection({
         <div>
           <p className="eyebrow">COMPRAS CENTRALIZADAS</p>
           <h1>Albaranes</h1>
-          <p className="subtitle">Digitaliza, organiza y detecta cambios de precio.</p>
+          <p className="subtitle">Sube un albarán y detecta cambios de precio al momento.</p>
         </div>
         <button type="button" className="primary-button" onClick={() => setShowUpload(true)}>
           <Upload size={17} />
@@ -42,15 +54,15 @@ export function DeliveryNotesSection({
 
       <div className="metrics compact">
         <MetricCard
-          label="Pendientes de revisar"
+          label="Albaranes por revisar"
           value={String(reviewCount)}
-          detail="En todas las tiendas"
+          detail="Tienen una subida de precio"
           accent="orange"
         />
         <MetricCard
-          label="Subidas detectadas"
+          label="Precios con subida"
           value={String(reviewCount)}
-          detail="Desde la última compra"
+          detail="Frente al último albarán"
           accent="purple"
         />
         <MetricCard
@@ -66,16 +78,17 @@ export function DeliveryNotesSection({
           <div className="search">
             <Search size={17} />
             <input
-              placeholder="Buscar proveedor o tienda"
+              placeholder="Buscar por proveedor o cafetería"
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
             />
           </div>
-          <button type="button" className="filter-button">
-            <Store size={15} />
-            {store === ALL_STORES_LABEL ? "Todas las tiendas" : store}
-            <ChevronDown size={15} />
-          </button>
+          <StoreFilter
+            currentStore={store}
+            storeId={storeId}
+            stores={stores}
+            onStoreChange={onStoreChange}
+          />
         </div>
         <DeliveryNotesTable notes={notes} />
       </div>
@@ -83,12 +96,53 @@ export function DeliveryNotesSection({
       {showUpload && (
         <UploadNoteModal
           onClose={() => setShowUpload(false)}
-          onConfirm={async (file) => {
-            await onScannedNote(file);
-            setShowUpload(false);
-          }}
+          onConfirm={(file, draft) => onScannedNote(file, draft)}
         />
       )}
     </>
+  );
+}
+
+function StoreFilter({
+  currentStore,
+  storeId,
+  stores,
+  onStoreChange,
+}: {
+  currentStore: string;
+  storeId: string;
+  stores: StoreOption[];
+  onStoreChange: (storeId: string) => void;
+}) {
+  const options = [{ id: ALL_STORES_ID, name: ALL_STORES_LABEL }, ...stores];
+
+  return (
+    <Popover.Root>
+      <Popover.Trigger className="filter-button" aria-label="Filtrar albaranes por cafetería">
+        <Store size={15} />
+        {currentStore}
+        <ChevronDown size={15} />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner align="end" side="bottom" sideOffset={8}>
+          <Popover.Popup className="store-filter-popover">
+            <p>Filtrar por cafetería</p>
+            <fieldset aria-label="Cafeterías disponibles">
+              {options.map((option) => (
+                <Popover.Close
+                  className="store-filter-option"
+                  key={option.id}
+                  type="button"
+                  onClick={() => onStoreChange(option.id)}
+                >
+                  <span>{option.name}</span>
+                  {option.id === storeId && <Check size={15} aria-label="Seleccionada" />}
+                </Popover.Close>
+              ))}
+            </fieldset>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

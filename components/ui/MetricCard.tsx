@@ -1,6 +1,8 @@
+import type { MetricAccent } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 import { Sparkles, TrendingDown, TrendingUp } from "lucide-react";
-import type { MetricAccent } from "@/lib/types";
+import Link from "next/link";
+import { MetricSparkline } from "./MetricSparkline";
 
 type MetricCardProps = {
   label: string;
@@ -9,6 +11,7 @@ type MetricCardProps = {
   accent: MetricAccent;
   icon?: LucideIcon;
   trend?: "down" | "up";
+  href?: string;
 };
 
 export function MetricCard({
@@ -18,37 +21,43 @@ export function MetricCard({
   accent,
   icon: Icon = Sparkles,
   trend,
+  href,
 }: MetricCardProps) {
   const TrendIcon = trend === "down" ? TrendingDown : TrendingUp;
-
-  return (
-    <div className="metric-card">
+  const content = (
+    <>
       <div className={`metric-icon ${accent}`}>
         <Icon size={17} />
       </div>
       <div className="metric-content">
         <p>{label}</p>
-        <div className="metric-value-row">
-          <strong>{value}</strong>
-          {trend && (
-            <span className={`metric-trend ${trend}`}>
-              <TrendIcon size={13} />
-            </span>
-          )}
+        <div className="metric-data-row">
+          <div className="metric-value-row">
+            <strong>{value}</strong>
+            {trend && (
+              <span className={`metric-trend ${trend}`}>
+                <TrendIcon size={13} />
+              </span>
+            )}
+          </div>
+          {trend && <MetricSparkline trend={trend} />}
         </div>
         <small>{detail}</small>
       </div>
-      {trend && (
-        <svg className={`metric-sparkline ${trend}`} viewBox="0 0 72 26" aria-hidden="true">
-          <polyline
-            points={
-              trend === "up"
-                ? "1,21 12,18 22,20 34,7 45,14 56,5 71,12"
-                : "1,7 12,14 23,10 34,19 45,13 56,18 71,8"
-            }
-          />
-        </svg>
-      )}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className="metric-card metric-card-link">
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="metric-card">
+      {content}
     </div>
   );
 }

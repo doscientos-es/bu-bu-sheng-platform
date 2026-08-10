@@ -20,18 +20,9 @@ type AzureAnalyzeResult = {
   };
 };
 
-export type ExtractedDeliveryNote = {
-  supplier: string;
-  date: string;
-  documentNumber: string;
-  total: number | null;
-  lines: Array<{
-    description: string;
-    quantity: number | null;
-    unitPrice: number | null;
-    confidence: number | null;
-  }>;
-  confidence: number | null;
+import type { DeliveryNoteDraft } from "@/lib/types";
+
+export type ExtractedDeliveryNote = DeliveryNoteDraft & {
   raw: AzureAnalyzeResult;
 };
 
@@ -93,10 +84,7 @@ export async function analyzeWithAzure(file: File): Promise<ExtractedDeliveryNot
   const lines = (lineItems?.valueArray ?? []).map((item) => {
     const itemFields = item.valueObject ?? {};
     return {
-      description:
-        value(itemFields.Description) ||
-        value(itemFields.ProductCode) ||
-        "Producto sin identificar",
+      description: value(itemFields.Description) || value(itemFields.ProductCode) || "",
       quantity: numberValue(itemFields.Quantity),
       unitPrice: numberValue(itemFields.UnitPrice),
       confidence: itemFields.Description?.confidence ?? itemFields.UnitPrice?.confidence ?? null,
@@ -104,7 +92,7 @@ export async function analyzeWithAzure(file: File): Promise<ExtractedDeliveryNot
   });
 
   return {
-    supplier: value(fields.VendorName) || value(fields.SupplierName) || "Proveedor no identificado",
+    supplier: value(fields.VendorName) || value(fields.SupplierName),
     date: value(fields.InvoiceDate) || value(fields.DeliveryDate),
     documentNumber: value(fields.InvoiceId) || value(fields.DocumentId),
     total: numberValue(fields.InvoiceTotal) ?? numberValue(fields.AmountDue),

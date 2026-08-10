@@ -1,5 +1,5 @@
-import { DashboardRouteContent } from "@/features/dashboard/DashboardRouteContent";
+import { redirect } from "next/navigation";
 
 export default function LoyaltyPage() {
-  return <DashboardRouteContent section="Fidelización" />;
+  redirect("/configuracion");
 }
