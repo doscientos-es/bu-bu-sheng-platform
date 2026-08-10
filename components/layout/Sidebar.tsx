@@ -1,6 +1,6 @@
 import { ChevronDown, FileText, LayoutDashboard, Settings2, Users } from "lucide-react";
 import type { ComponentType } from "react";
-import { type Section, SECTIONS } from "@/lib/types";
+import { SECTIONS, type Section } from "@/lib/types";
 
 const SECTION_ICONS: Record<Section, ComponentType<{ size?: number }>> = {
   Resumen: LayoutDashboard,
