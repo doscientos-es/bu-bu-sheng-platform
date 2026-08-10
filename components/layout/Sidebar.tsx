@@ -1,7 +1,7 @@
+import { SECTIONS, type Section } from "@/lib/types";
 import { ChevronDown, FileText, LayoutDashboard, Search, Settings2, Users } from "lucide-react";
 import Link from "next/link";
 import type { ComponentType } from "react";
-import { SECTIONS, type Section } from "@/lib/types";
 
 const SECTION_ICONS: Record<Section, ComponentType<{ size?: number }>> = {
   Resumen: LayoutDashboard,
@@ -25,9 +25,9 @@ export function Sidebar({ section }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark">D</div>
+        <div className="brand-mark">B</div>
         <div>
-          <strong>Doscientos</strong>
+          <strong>Bu Bu Sheng</strong>
           <span>Cafeterías</span>
         </div>
       </div>
