@@ -40,7 +40,7 @@ export function DeliveryNotesSection({
 
   return (
     <>
-      <div className="section-heading">
+      <div className="section-heading page-heading">
         <div>
           <p className="eyebrow">COMPRAS CENTRALIZADAS</p>
           <h1>Albaranes</h1>

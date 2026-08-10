@@ -3894,26 +3894,23 @@ textarea {
   }
 }
 
-/* Compact customer and loyalty settings workspace. */
+/* Shared compact page header. */
 .page-content {
   padding-top: 20px;
 }
 
-.customers-page .section-heading,
-.loyalty-settings .section-heading {
+.page-heading {
   margin-bottom: 16px;
 }
 
-.customers-page .section-heading h1,
-.loyalty-settings .section-heading h1 {
+.page-heading h1 {
   margin: 3px 0 5px;
   font-size: clamp(24px, 2.2vw, 32px);
   letter-spacing: -0.045em;
   line-height: 1.1;
 }
 
-.customers-page .subtitle,
-.loyalty-settings .subtitle {
+.page-heading .subtitle {
   max-width: 620px;
   font-size: 13px;
   line-height: 1.45;
@@ -4033,18 +4030,16 @@ textarea {
     padding-top: 16px;
   }
 
-  .customers-page .section-heading,
-  .loyalty-settings .section-heading {
+  .page-heading {
     gap: 10px;
     margin-bottom: 14px;
   }
 
-  .customers-page .section-heading h1,
-  .loyalty-settings .section-heading h1 {
+  .page-heading h1 {
     font-size: 26px;
   }
 
-  .customers-page .section-heading .primary-button {
+  .page-heading .primary-button {
     width: 100%;
   }
 
@@ -4286,6 +4281,10 @@ textarea {
     align-items: stretch;
     flex-direction: column;
     gap: 14px;
+  }
+
+  .section-heading h1 {
+    font-size: 26px;
   }
 
   .section-heading .primary-button {

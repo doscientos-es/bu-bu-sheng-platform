@@ -40,7 +40,7 @@ export function OverviewSection({
 
   return (
     <>
-      <div className="dashboard-intro">
+      <div className="section-heading page-heading overview-heading">
         <div>
           <p className="dashboard-path">
             Resumen <span>/</span> Operación
@@ -48,7 +48,7 @@ export function OverviewSection({
           <h1>
             Buenos días, Vicky <span aria-hidden="true">👋</span>
           </h1>
-          <p>Una vista rápida de compras, precios y clientes de tu red.</p>
+          <p className="subtitle">Una vista rápida de compras, precios y clientes de tu red.</p>
         </div>
         <div className="dashboard-intro-actions">
           <button type="button" className="period-button">

@@ -35,7 +35,7 @@ export function LoyaltySection({
 
   return (
     <section className="customers-page">
-      <div className="section-heading">
+      <div className="section-heading page-heading">
         <div>
           <p className="eyebrow">RELACIÓN CON CLIENTES</p>
           <h1>Clientes</h1>

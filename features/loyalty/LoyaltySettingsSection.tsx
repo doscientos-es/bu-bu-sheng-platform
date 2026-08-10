@@ -9,7 +9,7 @@ type LoyaltySettingsSectionProps = {
 export function LoyaltySettingsSection({ rules, onSaveRule }: LoyaltySettingsSectionProps) {
   return (
     <section className="loyalty-settings">
-      <div className="section-heading">
+      <div className="section-heading page-heading">
         <div>
           <p className="eyebrow">CONFIGURACIÓN</p>
           <h1>Fidelización y descuentos</h1>
