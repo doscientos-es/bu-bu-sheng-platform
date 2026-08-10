@@ -1,11 +1,14 @@
+"use client";
+
 import { Mail } from "lucide-react";
+import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import type { Customer } from "@/lib/types";
 
 type BirthdayEmailModalProps = {
   customer: Customer;
   onClose: () => void;
-  onMarkAsPrepared: () => void;
+  onMarkAsPrepared: () => Promise<void>;
 };
 
 export function BirthdayEmailModal({
@@ -14,6 +17,22 @@ export function BirthdayEmailModal({
   onMarkAsPrepared,
 }: BirthdayEmailModalProps) {
   const firstName = customer.name.split(" ")[0];
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleMarkAsPrepared() {
+    setIsSaving(true);
+    setError(null);
+    try {
+      await onMarkAsPrepared();
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error ? requestError.message : "No se ha podido preparar el email.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <Modal title="Preparar email de cumpleaños" onClose={onClose}>
@@ -30,13 +49,19 @@ export function BirthdayEmailModal({
         <div className="promo-code">CUMPLE-CAFE</div>
         <small>Esta demo prepara el email, pero no lo envía.</small>
       </div>
+      {error && <p role="alert">{error}</p>}
       <div className="modal-actions">
         <button type="button" className="ghost-button" onClick={onClose}>
           Cerrar
         </button>
-        <button type="button" className="primary-button" onClick={onMarkAsPrepared}>
+        <button
+          type="button"
+          className="primary-button"
+          disabled={isSaving}
+          onClick={handleMarkAsPrepared}
+        >
           <Mail size={15} />
-          Marcar como preparado
+          {isSaving ? "Guardando…" : "Marcar como preparado"}
         </button>
       </div>
     </Modal>

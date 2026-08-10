@@ -1,4 +1,5 @@
-import { ChevronDown, FileText, LayoutDashboard, Settings2, Users } from "lucide-react";
+import { ChevronDown, FileText, LayoutDashboard, Search, Settings2, Users } from "lucide-react";
+import Link from "next/link";
 import type { ComponentType } from "react";
 import { SECTIONS, type Section } from "@/lib/types";
 
@@ -8,12 +9,17 @@ const SECTION_ICONS: Record<Section, ComponentType<{ size?: number }>> = {
   Fidelización: Users,
 };
 
-type SidebarProps = {
-  section: Section;
-  onNavigate: (section: Section) => void;
+const SECTION_HREFS: Record<Section, string> = {
+  Resumen: "/",
+  Albaranes: "/albaranes",
+  Fidelización: "/fidelizacion",
 };
 
-export function Sidebar({ section, onNavigate }: SidebarProps) {
+type SidebarProps = {
+  section: Section;
+};
+
+export function Sidebar({ section }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -24,19 +30,23 @@ export function Sidebar({ section, onNavigate }: SidebarProps) {
         </div>
       </div>
       <div className="workspace-label">ESPACIO DE TRABAJO</div>
+      <Link href="/albaranes" className="sidebar-search" aria-label="Buscar albaranes">
+        <Search size={14} />
+        <span>Buscar albaranes</span>
+      </Link>
       <nav>
         {SECTIONS.map((item) => {
           const Icon = SECTION_ICONS[item];
           return (
-            <button
+            <Link
               key={item}
-              type="button"
+              href={SECTION_HREFS[item]}
               className={section === item ? "nav-item active" : "nav-item"}
-              onClick={() => onNavigate(item)}
+              aria-current={section === item ? "page" : undefined}
             >
               <Icon size={18} />
               {item}
-            </button>
+            </Link>
           );
         })}
       </nav>

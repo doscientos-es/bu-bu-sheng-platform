@@ -1,14 +1,15 @@
 import { Bell, Menu, Store } from "lucide-react";
-import { stores } from "@/lib/data";
-import type { Section } from "@/lib/types";
+import { ALL_STORES_ID, ALL_STORES_LABEL } from "@/lib/demo";
+import type { Section, Store as StoreOption } from "@/lib/types";
 
 type TopbarProps = {
   section: Section;
-  store: string;
-  onStoreChange: (store: string) => void;
+  stores: StoreOption[];
+  storeId: string;
+  onStoreChange: (storeId: string) => void;
 };
 
-export function Topbar({ section, store, onStoreChange }: TopbarProps) {
+export function Topbar({ section, stores, storeId, onStoreChange }: TopbarProps) {
   return (
     <header className="topbar">
       <button type="button" className="mobile-menu" aria-label="Abrir menú">
@@ -23,12 +24,15 @@ export function Topbar({ section, store, onStoreChange }: TopbarProps) {
         <div className="store-select">
           <Store size={16} />
           <select
-            value={store}
+            value={storeId}
             onChange={(event) => onStoreChange(event.target.value)}
             aria-label="Seleccionar cafetería"
           >
-            {stores.map((item) => (
-              <option key={item}>{item}</option>
+            <option value={ALL_STORES_ID}>{ALL_STORES_LABEL}</option>
+            {stores.map((store) => (
+              <option key={store.id} value={store.id}>
+                {store.name}
+              </option>
             ))}
           </select>
         </div>

@@ -3,15 +3,34 @@
 import { ChevronDown, Mail, Plus } from "lucide-react";
 import { useState } from "react";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { customers } from "@/lib/data";
-import type { Customer } from "@/lib/types";
+import type { Customer, Store } from "@/lib/types";
 import { BirthdayEmailModal } from "./BirthdayEmailModal";
 import { BirthdaysTable } from "./BirthdaysTable";
 import { NewCustomerModal } from "./NewCustomerModal";
 
-export function LoyaltySection() {
+type LoyaltySectionProps = {
+  customers: Customer[];
+  stores: Store[];
+  onCreateCustomer: (input: {
+    birthday: string;
+    consent: boolean;
+    email: string;
+    name: string;
+    storeId: string;
+  }) => Promise<void>;
+  onPreparePromotion: (promotionAssignmentId: string) => Promise<void>;
+};
+
+export function LoyaltySection({
+  customers,
+  stores,
+  onCreateCustomer,
+  onPreparePromotion,
+}: LoyaltySectionProps) {
   const [showCustomer, setShowCustomer] = useState(false);
   const [emailCustomer, setEmailCustomer] = useState<Customer | null>(null);
+  const preparedPromotions = customers.filter((customer) => customer.status === "Preparado").length;
+  const upcomingBirthdays = customers.filter((customer) => customer.birthday === "Hoy").length;
 
   return (
     <>
@@ -30,17 +49,22 @@ export function LoyaltySection() {
       <div className="metrics compact">
         <MetricCard
           label="Clientes registrados"
-          value="1.284"
-          detail="En las 10 cafeterías"
+          value={String(customers.length)}
+          detail={`En ${stores.length} cafeterías`}
           accent="green"
         />
         <MetricCard
           label="Cumpleaños próximos"
-          value="24"
+          value={String(upcomingBirthdays)}
           detail="En los próximos 7 días"
           accent="blue"
         />
-        <MetricCard label="Promociones preparadas" value="86" detail="Este mes" accent="purple" />
+        <MetricCard
+          label="Promociones preparadas"
+          value={String(preparedPromotions)}
+          detail="Este mes"
+          accent="purple"
+        />
       </div>
 
       <div className="panel table-panel">
@@ -59,8 +83,12 @@ export function LoyaltySection() {
 
       {showCustomer && (
         <NewCustomerModal
+          stores={stores}
           onClose={() => setShowCustomer(false)}
-          onSave={() => setShowCustomer(false)}
+          onSave={async (input) => {
+            await onCreateCustomer(input);
+            setShowCustomer(false);
+          }}
         />
       )}
 
@@ -68,7 +96,11 @@ export function LoyaltySection() {
         <BirthdayEmailModal
           customer={emailCustomer}
           onClose={() => setEmailCustomer(null)}
-          onMarkAsPrepared={() => setEmailCustomer(null)}
+          onMarkAsPrepared={async () => {
+            if (!emailCustomer.promotionAssignmentId) return;
+            await onPreparePromotion(emailCustomer.promotionAssignmentId);
+            setEmailCustomer(null);
+          }}
         />
       )}
     </>

@@ -3,7 +3,7 @@
 import { ChevronDown, Search, Store, Upload } from "lucide-react";
 import { useState } from "react";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { ALL_STORES } from "@/lib/data";
+import { ALL_STORES_LABEL } from "@/lib/demo";
 import type { DeliveryNote } from "@/lib/types";
 import { DeliveryNotesTable } from "./DeliveryNotesTable";
 import { UploadNoteModal } from "./UploadNoteModal";
@@ -13,7 +13,7 @@ type DeliveryNotesSectionProps = {
   notes: DeliveryNote[];
   query: string;
   onQueryChange: (query: string) => void;
-  onScannedNote: () => void;
+  onScannedNote: (file: File) => Promise<void>;
 };
 
 export function DeliveryNotesSection({
@@ -24,6 +24,7 @@ export function DeliveryNotesSection({
   onScannedNote,
 }: DeliveryNotesSectionProps) {
   const [showUpload, setShowUpload] = useState(false);
+  const reviewCount = notes.filter((note) => note.tone === "warning").length;
 
   return (
     <>
@@ -42,20 +43,20 @@ export function DeliveryNotesSection({
       <div className="metrics compact">
         <MetricCard
           label="Pendientes de revisar"
-          value="12"
+          value={String(reviewCount)}
           detail="En todas las tiendas"
           accent="orange"
         />
         <MetricCard
           label="Subidas detectadas"
-          value="17"
+          value={String(reviewCount)}
           detail="Desde la última compra"
           accent="purple"
         />
         <MetricCard
           label="Documentos del mes"
-          value="428"
-          detail="100–150 por semana"
+          value={String(notes.length)}
+          detail="Según el filtro actual"
           accent="blue"
         />
       </div>
@@ -72,7 +73,7 @@ export function DeliveryNotesSection({
           </div>
           <button type="button" className="filter-button">
             <Store size={15} />
-            {store === ALL_STORES ? "Todas las tiendas" : store}
+            {store === ALL_STORES_LABEL ? "Todas las tiendas" : store}
             <ChevronDown size={15} />
           </button>
         </div>
@@ -80,7 +81,13 @@ export function DeliveryNotesSection({
       </div>
 
       {showUpload && (
-        <UploadNoteModal onClose={() => setShowUpload(false)} onConfirm={onScannedNote} />
+        <UploadNoteModal
+          onClose={() => setShowUpload(false)}
+          onConfirm={async (file) => {
+            await onScannedNote(file);
+            setShowUpload(false);
+          }}
+        />
       )}
     </>
   );
