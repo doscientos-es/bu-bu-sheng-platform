@@ -16,7 +16,7 @@ export function Topbar({ section, stores, storeId, onStoreChange }: TopbarProps)
         <Menu size={20} />
       </button>
       <div className="crumb">
-        <span>Red de cafeterías</span>
+        {/* <span>Red de cafeterías</span> */}
         <span className="crumb-separator" aria-hidden="true">
           /
         </span>
