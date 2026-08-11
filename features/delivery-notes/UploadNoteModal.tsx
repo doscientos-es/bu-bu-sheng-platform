@@ -534,23 +534,34 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
           </div>
           <h3>Albarán guardado correctamente</h3>
           {confirmedIncreases.length ? (
-            <>
-              <p>
-                Hemos detectado {confirmedIncreases.length}{" "}
-                {confirmedIncreases.length === 1 ? "subida" : "subidas"}{" "}
-                de precio frente a la última compra.
-              </p>
-              <ul className="price-change-list">
-                {confirmedIncreases.map((line) => (
-                  <li key={line.description}>
-                    <strong>{line.description}</strong>
-                    <span>
-                      {formatPrice(line.previousUnitPrice)} → {formatPrice(line.unitPrice)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
+            <aside className="price-alert" role="alert">
+              <div className="price-alert-icon" aria-hidden="true">
+                <AlertTriangle size={19} />
+              </div>
+              <div>
+                <p className="eyebrow">SUBIDA DE PRECIO DETECTADA</p>
+                <h4>
+                  {confirmedIncreases.length === 1
+                    ? "Este proveedor ha subido un precio"
+                    : `Este proveedor ha subido ${confirmedIncreases.length} precios`}
+                </h4>
+                <p>Comparado con su último albarán.</p>
+                <ul>
+                  {confirmedIncreases.map((line) => {
+                    const increase = formatPriceIncrease(line.unitPrice, line.previousUnitPrice);
+                    return (
+                      <li key={line.description}>
+                        <strong>{line.description}</strong>
+                        <span>
+                          {formatPrice(line.previousUnitPrice)} → {formatPrice(line.unitPrice)}
+                          {increase && ` (+${increase})`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </aside>
           ) : (
             <p>No hay subidas de precio en los productos con historial de compra.</p>
           )}

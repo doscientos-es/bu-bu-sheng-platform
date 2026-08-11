@@ -1136,7 +1136,7 @@ body {
   background: #f3f3f4;
 }
 
-.sidebar-bottom>.nav-item {
+.sidebar-bottom > .nav-item {
   color: #84848a;
 }
 
@@ -1205,7 +1205,7 @@ body {
   font-size: 16px;
 }
 
-.dashboard-intro>div>p:last-child {
+.dashboard-intro > div > p:last-child {
   margin-top: 5px;
   font-size: 10px;
 }
@@ -1433,7 +1433,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .skeleton-title,
   .skeleton-copy,
   .skeleton-card,
@@ -1559,7 +1558,7 @@ body {
   font-size: 13px;
 }
 
-.price-alert h4+p {
+.price-alert h4 + p {
   margin-top: 3px;
   color: #7c573e;
   font-size: 11px;
@@ -1695,7 +1694,7 @@ body {
   box-shadow: inset 3px 0 #d97425;
 }
 
-.modal-review .review-line label>span {
+.modal-review .review-line label > span {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1795,12 +1794,12 @@ body {
   margin: 24px 0;
 }
 
-.loyalty-rules>.dashboard-panel-heading {
+.loyalty-rules > .dashboard-panel-heading {
   align-items: end;
   margin-bottom: 12px;
 }
 
-.loyalty-rules>.dashboard-panel-heading>p {
+.loyalty-rules > .dashboard-panel-heading > p {
   color: var(--muted);
   font-size: 13px;
   margin: 0;
@@ -1944,8 +1943,7 @@ body {
 }
 
 @media (max-width: 700px) {
-
-  .loyalty-rules>.dashboard-panel-heading,
+  .loyalty-rules > .dashboard-panel-heading,
   .visit-registration,
   .visit-registration-controls {
     align-items: stretch;
@@ -2095,7 +2093,7 @@ select {
   padding: 0 2px;
 }
 
-.sidebar-bottom>.nav-item {
+.sidebar-bottom > .nav-item {
   color: #777;
 }
 
@@ -2751,7 +2749,7 @@ td {
   text-align: center;
 }
 
-.dashboard-state>div {
+.dashboard-state > div {
   max-width: 360px;
   padding: 24px;
   border: 1px solid var(--line);
@@ -2997,7 +2995,7 @@ td {
   height: 15px;
 }
 
-.sidebar-bottom>.nav-item {
+.sidebar-bottom > .nav-item {
   min-height: 36px;
 }
 
@@ -3051,7 +3049,7 @@ td {
   font-size: 19px;
 }
 
-.dashboard-intro>div>p:last-child {
+.dashboard-intro > div > p:last-child {
   margin: 7px 0 0;
   color: #777;
   font-size: 12px;
@@ -3253,7 +3251,7 @@ td {
   letter-spacing: -0.05em;
 }
 
-.chart-summary>span {
+.chart-summary > span {
   color: #777;
   font-size: 11px;
 }
@@ -3344,7 +3342,7 @@ td {
   white-space: nowrap;
 }
 
-.activity-item>span {
+.activity-item > span {
   align-self: start;
   color: #999;
   font-size: 9px;
@@ -3644,9 +3642,9 @@ textarea {
   letter-spacing: -0.03em;
 }
 
-.scan-progress>p:not(.eyebrow),
+.scan-progress > p:not(.eyebrow),
 .saving-state p,
-.save-success>p {
+.save-success > p {
   margin: 0;
   color: #707070;
   font-size: 12px;
@@ -3659,7 +3657,7 @@ textarea {
   margin-top: 22px;
 }
 
-.scan-progress-list>.scan-step {
+.scan-progress-list > .scan-step {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3667,20 +3665,20 @@ textarea {
   font-size: 11px;
 }
 
-.scan-progress-list>.scan-step.active {
+.scan-progress-list > .scan-step.active {
   color: #393939;
 }
 
-.scan-progress-list>.scan-step.active svg {
+.scan-progress-list > .scan-step.active svg {
   color: var(--accent);
   animation: spin 1.1s linear infinite;
 }
 
-.scan-progress-list>.scan-step.complete {
+.scan-progress-list > .scan-step.complete {
   color: #4b4b4b;
 }
 
-.scan-progress-list>.scan-step.complete svg {
+.scan-progress-list > .scan-step.complete svg {
   animation: none;
   color: #258a57;
 }
@@ -3821,7 +3819,7 @@ textarea {
   text-align: center;
 }
 
-.saving-state>svg {
+.saving-state > svg {
   margin-bottom: 14px;
   color: var(--accent);
   animation: spin 1s linear infinite;
@@ -3839,33 +3837,10 @@ textarea {
   color: #218653;
 }
 
-.price-change-list {
+.save-success .price-alert {
   width: min(100%, 480px);
   margin: 18px 0 4px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid #f0dfd2;
-  border-radius: 8px;
-  list-style: none;
   text-align: left;
-}
-
-.price-change-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 12px;
-  border-top: 1px solid #f4ebe4;
-  font-size: 11px;
-}
-
-.price-change-list li:first-child {
-  border-top: 0;
-}
-
-.price-change-list span {
-  color: #a85b26;
-  white-space: nowrap;
 }
 
 .save-success .modal-actions {
@@ -3873,7 +3848,6 @@ textarea {
 }
 
 @keyframes document-scan {
-
   0%,
   100% {
     top: 12%;
@@ -3934,11 +3908,10 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .capture-action,
   .document-scan-line,
-  .scan-progress-list>.scan-step.active svg,
-  .saving-state>svg {
+  .scan-progress-list > .scan-step.active svg,
+  .saving-state > svg {
     animation: none;
     transition: none;
   }
@@ -3974,7 +3947,7 @@ textarea {
   margin: 0;
 }
 
-.loyalty-settings .loyalty-rules>.dashboard-panel-heading {
+.loyalty-settings .loyalty-rules > .dashboard-panel-heading {
   min-height: auto;
   margin-bottom: 10px;
   padding: 12px 14px;
@@ -4093,11 +4066,11 @@ textarea {
     width: 100%;
   }
 
-  .loyalty-settings .loyalty-rules>.dashboard-panel-heading {
+  .loyalty-settings .loyalty-rules > .dashboard-panel-heading {
     display: block;
   }
 
-  .loyalty-settings .loyalty-rules>.dashboard-panel-heading>p {
+  .loyalty-settings .loyalty-rules > .dashboard-panel-heading > p {
     margin-top: 5px;
   }
 
@@ -4155,7 +4128,7 @@ textarea {
   margin-left: auto;
 }
 
-.metric-content>small {
+.metric-content > small {
   display: block;
   min-width: 0;
   margin-top: 4px;
@@ -4230,7 +4203,7 @@ textarea {
   font-weight: 600;
 }
 
-.visit-registration-field>span {
+.visit-registration-field > span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -4315,7 +4288,7 @@ textarea {
     display: none;
   }
 
-  .sidebar-bottom>.nav-item {
+  .sidebar-bottom > .nav-item {
     display: flex;
     min-height: 54px;
     padding: 5px 2px;
@@ -4446,6 +4419,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 0;
   margin: 0 0 8px;
   color: var(--muted);
   font-size: 11px;
@@ -4457,8 +4431,11 @@ textarea {
 .visit-terminal-stores {
   display: flex;
   overflow-x: auto;
+  flex-wrap: wrap;
   gap: 8px;
-  padding-bottom: 2px;
+  padding: 0;
+  border: 0;
+  margin: 0;
   scrollbar-width: none;
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
-import type { Customer, Store } from "@/lib/types";
 import { Check, Gift, Search, Store as StoreIcon, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { Customer, Store } from "@/lib/types";
 
 type VisitTerminalProps = {
   customers: Customer[];
@@ -87,10 +87,10 @@ export function VisitTerminal({ customers, stores }: VisitTerminalProps) {
   return (
     <div className="visit-terminal">
       <header className="visit-terminal-header">
-        <p className="visit-terminal-kicker">
-          <StoreIcon size={13} /> Cafetería
-        </p>
-        <div className="visit-terminal-stores" role="group" aria-label="Elegir cafetería">
+        <fieldset className="visit-terminal-stores">
+          <legend className="visit-terminal-kicker">
+            <StoreIcon size={13} /> Cafetería
+          </legend>
           {stores.map((store) => (
             <button
               key={store.id}
@@ -102,7 +102,7 @@ export function VisitTerminal({ customers, stores }: VisitTerminalProps) {
               {store.name}
             </button>
           ))}
-        </div>
+        </fieldset>
         <h1>Registrar visita</h1>
         <p className="visit-terminal-help">Busca al cliente y toca su nombre.</p>
       </header>
