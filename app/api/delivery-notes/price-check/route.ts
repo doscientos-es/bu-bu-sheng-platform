@@ -1,13 +1,15 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { comparePrice, findPreviousPrices, normalizeProductName } from "@/lib/delivery-notes";
 import { DEMO_ORGANIZATION_ID } from "@/lib/demo";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import type { DeliveryNoteLineDraft, PriceComparison } from "@/lib/types";
+import type { DeliveryNoteLineDraft } from "@/lib/types";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
 const priceCheckSchema = z.object({
   supplier: z.string().trim().min(1),
+  excludeNoteId: z.string().uuid().optional(),
   lines: z.array(
     z.object({
       description: z.string().trim().min(1),
@@ -18,53 +20,6 @@ const priceCheckSchema = z.object({
 
 type ProductRow = { canonical_name: string; id: string };
 type SupplierProductRow = { product_id: string; supplier_label: string };
-
-function normalizeProductName(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase("es-ES")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function comparePrice(current: number | null, previous: number | undefined): PriceComparison["status"] {
-  if (current === null) return "review";
-  if (previous === undefined) return "unmatched";
-  if (Math.abs(current - previous) < 0.0001) return "same";
-  return current > previous ? "higher" : "lower";
-}
-
-async function findPreviousPrices(
-  supabase: ReturnType<typeof getSupabaseAdmin>,
-  supplierId: string,
-  productIds: string[],
-) {
-  if (!productIds.length) return new Map<string, number>();
-  const historyResult = await supabase
-    .from("delivery_notes")
-    .select("document_date, created_at, delivery_note_items(product_id, unit_price)")
-    .eq("organization_id", DEMO_ORGANIZATION_ID)
-    .eq("supplier_id", supplierId)
-    .order("document_date", { ascending: false })
-    .order("created_at", { ascending: false });
-  if (historyResult.error) throw historyResult.error;
-
-  const previousPrices = new Map<string, number>();
-  for (const note of historyResult.data ?? []) {
-    for (const item of note.delivery_note_items ?? []) {
-      if (
-        item.product_id &&
-        productIds.includes(item.product_id) &&
-        item.unit_price !== null &&
-        !previousPrices.has(item.product_id)
-      ) {
-        previousPrices.set(item.product_id, Number(item.unit_price));
-      }
-    }
-  }
-  return previousPrices;
-}
 
 export async function POST(request: Request) {
   try {
@@ -112,6 +67,7 @@ export async function POST(request: Request) {
       supabase,
       supplierResult.data.id,
       productIds.filter((productId): productId is string => Boolean(productId)),
+      draft.excludeNoteId,
     );
     const comparison = draft.lines.map((line, index) => {
       const previous = productIds[index] ? previousPrices.get(productIds[index]) : undefined;

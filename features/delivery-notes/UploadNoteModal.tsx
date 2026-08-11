@@ -23,11 +23,12 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type UploadNoteModalProps = {
+  noteId?: string;
   onClose: () => void;
-  onConfirm: (file: File, draft: DeliveryNoteDraft) => Promise<DeliveryNoteSaveResult>;
+  onConfirm: (file: File | null, draft: DeliveryNoteDraft) => Promise<DeliveryNoteSaveResult>;
 };
 
-type UploadStep = "capture" | "scanning" | "review" | "saving" | "success";
+type UploadStep = "capture" | "loading" | "scanning" | "review" | "saving" | "success";
 
 const SCAN_STEPS = [
   "Preparando el documento",
@@ -72,18 +73,22 @@ function formatPriceIncrease(current: number | null, previous: number | null) {
   return `${Math.round(((current - previous) / previous) * 100)}%`;
 }
 
-export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
+export function UploadNoteModal({ noteId, onClose, onConfirm }: UploadNoteModalProps) {
+  const isEditing = Boolean(noteId);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
   const [draft, setDraft] = useState<DeliveryNoteDraft | null>(null);
   const [ocrProvider, setOcrProvider] = useState<"azure" | "mock" | null>(null);
-  const [step, setStep] = useState<UploadStep>("capture");
+  const [step, setStep] = useState<UploadStep>(noteId ? "loading" : "capture");
   const [scanStep, setScanStep] = useState(0);
   const [result, setResult] = useState<DeliveryNoteSaveResult | null>(null);
   const [priceComparison, setPriceComparison] = useState<PriceComparison[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const isBusy = step === "scanning" || step === "saving";
+  const isBusy = step === "scanning" || step === "saving" || step === "loading";
+  const documentName = file?.name ?? "Documento del albarán";
+  const documentUrl = previewUrl ?? remoteImageUrl;
 
   useEffect(() => {
     if (!file?.type.startsWith("image/")) {
@@ -102,6 +107,45 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
     }, 1300);
     return () => window.clearInterval(interval);
   }, [step]);
+
+  useEffect(() => {
+    if (!noteId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(`/api/delivery-notes/${noteId}`);
+        const payload = (await response.json()) as {
+          draft?: DeliveryNoteDraft;
+          error?: string;
+          imageUrl?: string | null;
+        };
+        if (!response.ok || !payload.draft) {
+          throw new Error(payload.error ?? "No hemos podido cargar el albarán.");
+        }
+        if (cancelled) return;
+        const loadedDraft: DeliveryNoteDraft = {
+          ...payload.draft,
+          lines: payload.draft.lines.length
+            ? payload.draft.lines.map((line) => ({ ...line, id: line.id ?? crypto.randomUUID() }))
+            : [createEmptyLine()],
+        };
+        setDraft(loadedDraft);
+        setRemoteImageUrl(payload.imageUrl ?? null);
+        setStep("review");
+        void checkPriceChanges(loadedDraft, noteId);
+      } catch (requestError) {
+        if (cancelled) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "No hemos podido cargar el albarán.",
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [noteId]);
 
   async function scanDocument(selectedFile: File) {
     setFile(selectedFile);
@@ -140,10 +184,14 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
     }
   }
 
-  async function checkPriceChanges(scannedDraft: DeliveryNoteDraft) {
+  async function checkPriceChanges(scannedDraft: DeliveryNoteDraft, excludeNoteId?: string) {
     try {
       const response = await fetch("/api/delivery-notes/price-check", {
-        body: JSON.stringify({ supplier: scannedDraft.supplier, lines: scannedDraft.lines }),
+        body: JSON.stringify({
+          excludeNoteId,
+          lines: scannedDraft.lines,
+          supplier: scannedDraft.supplier,
+        }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
@@ -199,7 +247,7 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
 
   function canConfirm() {
     return Boolean(
-      file &&
+      (file || isEditing) &&
       draft?.supplier.trim() &&
       draft.date &&
       draft.lines.length &&
@@ -210,7 +258,7 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
   }
 
   async function handleConfirm() {
-    if (!file || !draft) return;
+    if (!draft || (!file && !isEditing)) return;
     if (!canConfirm()) {
       setError("Completa proveedor, fecha, cantidad y precio de cada producto antes de confirmar.");
       return;
@@ -230,8 +278,13 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
     }
   }
 
-  const title =
-    step === "capture"
+  const title = isEditing
+    ? step === "success"
+      ? "Albarán actualizado"
+      : step === "loading"
+        ? "Cargando el albarán"
+        : "Editar albarán"
+    : step === "capture"
       ? "Añadir albarán"
       : step === "scanning"
         ? "Leyendo el albarán"
@@ -248,20 +301,30 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
       title={title}
       onClose={() => !isBusy && onClose()}
     >
-      <ol
-        className={`upload-steps ${step === "review" ? "review-upload-steps" : ""}`}
-        aria-label="Progreso de subida"
-      >
-        <li className={step === "capture" ? "active" : "complete"}>
-          <span>1</span> Documento
-        </li>
-        <li className={["scanning", "review", "saving", "success"].includes(step) ? "active" : ""}>
-          <span>2</span> Lectura
-        </li>
-        <li className={["review", "saving", "success"].includes(step) ? "active" : ""}>
-          <span>3</span> Confirmar
-        </li>
-      </ol>
+      {!isEditing && (
+        <ol
+          className={`upload-steps ${step === "review" ? "review-upload-steps" : ""}`}
+          aria-label="Progreso de subida"
+        >
+          <li className={step === "capture" ? "active" : "complete"}>
+            <span>1</span> Documento
+          </li>
+          <li className={["scanning", "review", "saving", "success"].includes(step) ? "active" : ""}>
+            <span>2</span> Lectura
+          </li>
+          <li className={["review", "saving", "success"].includes(step) ? "active" : ""}>
+            <span>3</span> Confirmar
+          </li>
+        </ol>
+      )}
+
+      {step === "loading" && (
+        <div className="saving-state" aria-live="polite">
+          <LoaderCircle size={25} />
+          <strong>Cargando el albarán…</strong>
+          <p>Recuperamos los datos guardados para que puedas editarlos.</p>
+        </div>
+      )}
 
       {step === "capture" && (
         <div className="capture-grid">
@@ -303,7 +366,7 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
 
       {step === "scanning" && file && (
         <div className="scan-workspace" aria-live="polite">
-          <DocumentPreview file={file} previewUrl={previewUrl} scanning />
+          <DocumentPreview name={documentName} previewUrl={previewUrl} scanning />
           <div className="scan-progress">
             <div className="scan-icon">
               <ScanLine size={22} />
@@ -336,9 +399,9 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
         </div>
       )}
 
-      {step === "review" && file && draft && (
+      {step === "review" && (file || isEditing) && draft && (
         <div className="review-workspace">
-          <DocumentPreview file={file} previewUrl={previewUrl} />
+          <DocumentPreview name={documentName} previewUrl={documentUrl} />
           <form
             className="delivery-note-form"
             onSubmit={(event) => {
@@ -348,12 +411,14 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
           >
             <div className="review-form-heading">
               <div>
-                <p className="eyebrow">BORRADOR EXTRAÍDO</p>
-                <h3>Confirma los datos</h3>
+                <p className="eyebrow">{isEditing ? "ALBARÁN GUARDADO" : "BORRADOR EXTRAÍDO"}</p>
+                <h3>{isEditing ? "Edita los datos" : "Confirma los datos"}</h3>
               </div>
-              <button type="button" className="text-button" onClick={() => setStep("capture")}>
-                Cambiar documento
-              </button>
+              {!isEditing && (
+                <button type="button" className="text-button" onClick={() => setStep("capture")}>
+                  Cambiar documento
+                </button>
+              )}
             </div>
             <div className="review-status-row">
               <p className="review-help">Revisa los campos vacíos antes de guardar.</p>
@@ -512,7 +577,7 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
                 Cancelar
               </button>
               <button type="submit" className="primary-button">
-                Confirmar y guardar <ArrowRight size={15} />
+                {isEditing ? "Guardar cambios" : "Confirmar y guardar"} <ArrowRight size={15} />
               </button>
             </div>
           </form>
@@ -532,7 +597,9 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
           <div className="save-success-icon">
             <Check size={23} />
           </div>
-          <h3>Albarán guardado correctamente</h3>
+          <h3>
+            {isEditing ? "Albarán actualizado correctamente" : "Albarán guardado correctamente"}
+          </h3>
           {confirmedIncreases.length ? (
             <aside className="price-alert" role="alert">
               <div className="price-alert-icon" aria-hidden="true">
@@ -573,7 +640,7 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
         </div>
       )}
 
-      {error && step === "capture" && (
+      {error && (step === "capture" || step === "loading") && (
         <p className="form-error" role="alert">
           {error}
         </p>
@@ -583,11 +650,11 @@ export function UploadNoteModal({ onClose, onConfirm }: UploadNoteModalProps) {
 }
 
 function DocumentPreview({
-  file,
+  name,
   previewUrl,
   scanning = false,
 }: {
-  file: File;
+  name: string;
   previewUrl: string | null;
   scanning?: boolean;
 }) {
@@ -595,7 +662,7 @@ function DocumentPreview({
     <figure className={`document-preview ${scanning ? "is-scanning" : ""}`}>
       {previewUrl ? (
         <Image
-          alt={`Vista previa de ${file.name}`}
+          alt={`Vista previa de ${name}`}
           height={1600}
           src={previewUrl}
           unoptimized
@@ -606,7 +673,7 @@ function DocumentPreview({
       )}
       {scanning && <span className="document-scan-line" aria-hidden="true" />}
       <figcaption>
-        <FileText size={14} /> {file.name}
+        <FileText size={14} /> {name}
       </figcaption>
     </figure>
   );

@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { type ReactNode, useState } from "react";
 import { DashboardContext } from "@/features/dashboard/DashboardContext";
 import { useDashboardData } from "@/features/dashboard/useDashboardData";
 import { ALL_STORES_ID, ALL_STORES_LABEL } from "@/lib/demo";
 import type { Section } from "@/lib/types";
+import { usePathname } from "next/navigation";
+import { type ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
@@ -29,11 +29,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
     createCustomer,
     createDeliveryNote,
     data,
+    deleteDeliveryNote,
     error,
     isLoading,
     preparePromotion,
     registerVisit,
     saveLoyaltyRule,
+    updateDeliveryNote,
   } = useDashboardData();
   const notes = data?.notes ?? [];
   const selectedStoreLabel =
@@ -62,6 +64,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 createDeliveryNote,
                 data,
                 defaultStoreId,
+                deleteDeliveryNote,
                 notes,
                 preparePromotion,
                 registerVisit,
@@ -69,6 +72,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 selectedStoreLabel,
                 setStoreId,
                 storeId,
+                updateDeliveryNote,
               }}
             >
               {children}

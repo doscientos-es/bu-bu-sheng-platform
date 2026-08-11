@@ -1,6 +1,5 @@
 "use client";
 
-import { createContext, useContext } from "react";
 import type {
   DashboardData,
   DeliveryNote,
@@ -8,6 +7,7 @@ import type {
   DeliveryNoteSaveResult,
   LoyaltyRule,
 } from "@/lib/types";
+import { createContext, useContext } from "react";
 
 export type DashboardContextValue = {
   createCustomer: (input: {
@@ -24,6 +24,7 @@ export type DashboardContextValue = {
   ) => Promise<DeliveryNoteSaveResult>;
   data: DashboardData;
   defaultStoreId?: string;
+  deleteDeliveryNote: (noteId: string) => Promise<void>;
   notes: DeliveryNote[];
   preparePromotion: (promotionAssignmentId: string) => Promise<void>;
   registerVisit: (customerId: string, storeId: string) => Promise<{ issued: number }>;
@@ -31,6 +32,10 @@ export type DashboardContextValue = {
   selectedStoreLabel: string;
   setStoreId: (storeId: string) => void;
   storeId: string;
+  updateDeliveryNote: (
+    noteId: string,
+    draft: DeliveryNoteDraft,
+  ) => Promise<DeliveryNoteSaveResult>;
 };
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import type {
   Customer,
   DashboardData,
@@ -8,6 +7,7 @@ import type {
   DeliveryNoteSaveResult,
   LoyaltyRule,
 } from "@/lib/types";
+import { useCallback, useEffect, useState } from "react";
 
 type NewCustomer = {
   birthday: string;
@@ -81,6 +81,33 @@ export function useDashboardData() {
     [commitData],
   );
 
+  const updateDeliveryNote = useCallback(
+    async (noteId: string, draft: DeliveryNoteDraft) => {
+      const result = await requestJson<DeliveryNoteSaveResult>(`/api/delivery-notes/${noteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      commitData((current) => ({
+        ...current,
+        notes: current.notes.map((note) => (note.id === noteId ? result.note : note)),
+      }));
+      return result;
+    },
+    [commitData],
+  );
+
+  const deleteDeliveryNote = useCallback(
+    async (noteId: string) => {
+      await requestJson<{ id: string }>(`/api/delivery-notes/${noteId}`, { method: "DELETE" });
+      commitData((current) => ({
+        ...current,
+        notes: current.notes.filter((note) => note.id !== noteId),
+      }));
+    },
+    [commitData],
+  );
+
   const createCustomer = useCallback(
     async (input: NewCustomer) => {
       const customer = await requestJson<Customer>("/api/customers", {
@@ -142,11 +169,13 @@ export function useDashboardData() {
     createCustomer,
     createDeliveryNote,
     data,
+    deleteDeliveryNote,
     error,
     isLoading,
     preparePromotion,
     refresh,
     registerVisit,
     saveLoyaltyRule,
+    updateDeliveryNote,
   };
 }
