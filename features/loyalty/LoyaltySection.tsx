@@ -2,19 +2,12 @@
 
 import { MetricCard } from "@/components/ui/MetricCard";
 import type { Customer, Store } from "@/lib/types";
+import { Plus, Smartphone } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { CustomersTable } from "./CustomersTable";
 import { NewCustomerModal } from "./NewCustomerModal";
 import { RegisterVisitCard } from "./RegisterVisitCard";
-<div className="dashboard-intro-actions">
-  <Link href="/visitas" className="text-button" target="_blank" rel="noreferrer">
-    <Smartphone size={15} />
-    Registro en sala
-  </Link>
-  <button type="button" className="primary-button" onClick={() => setShowCustomer(true)}>
-    <Plus size={17} />
-    Nuevo cliente
-  </button>
-</div>
 
 type LoyaltySectionProps = {
   customers: Customer[];
@@ -49,10 +42,16 @@ export function LoyaltySection({
           <h1>Clientes</h1>
           <p className="subtitle">Consulta clientes y registra una visita en segundos.</p>
         </div>
-        <button type="button" className="primary-button" onClick={() => setShowCustomer(true)}>
-          <Plus size={17} />
-          Nuevo cliente
-        </button>
+        <div className="dashboard-intro-actions">
+          <Link href="/visitas" className="text-button" target="_blank" rel="noreferrer">
+            <Smartphone size={15} />
+            Registro en sala
+          </Link>
+          <button type="button" className="primary-button" onClick={() => setShowCustomer(true)}>
+            <Plus size={17} />
+            Nuevo cliente
+          </button>
+        </div>
       </div>
 
       <div className="metrics compact">
