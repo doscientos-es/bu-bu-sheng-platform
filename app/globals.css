@@ -1479,6 +1479,7 @@ body {
   min-height: 0;
   height: 100%;
   gap: 0;
+  align-items: stretch;
   overflow: hidden;
   grid-template-columns: minmax(350px, 0.82fr) minmax(0, 1.18fr);
 }
@@ -1498,6 +1499,7 @@ body {
 
 .modal-review .delivery-note-form {
   min-height: 0;
+  height: 100%;
   padding: 18px 24px 24px;
   overflow-y: auto;
   scrollbar-gutter: stable;

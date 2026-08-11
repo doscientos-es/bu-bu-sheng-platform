@@ -45,9 +45,7 @@ export function OverviewSection({
           <p className="dashboard-path">
             Resumen <span>/</span> Operación
           </p>
-          <h1>
-            Buenos días, Vicky <span aria-hidden="true">👋</span>
-          </h1>
+          <h1>Resumen</h1>
           <p className="subtitle">Una vista rápida de compras, precios y clientes de tu red.</p>
         </div>
         <div className="dashboard-intro-actions">
