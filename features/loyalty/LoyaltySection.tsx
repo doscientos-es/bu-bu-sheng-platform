@@ -2,11 +2,19 @@
 
 import { MetricCard } from "@/components/ui/MetricCard";
 import type { Customer, Store } from "@/lib/types";
-import { Plus } from "lucide-react";
-import { useState } from "react";
 import { CustomersTable } from "./CustomersTable";
 import { NewCustomerModal } from "./NewCustomerModal";
 import { RegisterVisitCard } from "./RegisterVisitCard";
+<div className="dashboard-intro-actions">
+  <Link href="/visitas" className="text-button" target="_blank" rel="noreferrer">
+    <Smartphone size={15} />
+    Registro en sala
+  </Link>
+  <button type="button" className="primary-button" onClick={() => setShowCustomer(true)}>
+    <Plus size={17} />
+    Nuevo cliente
+  </button>
+</div>
 
 type LoyaltySectionProps = {
   customers: Customer[];
