@@ -215,7 +215,11 @@ export async function getVisitTerminalData(): Promise<{
 }> {
   const supabase = getSupabaseAdmin();
   const [storesResult, customersResult] = await Promise.all([
-    supabase.from("stores").select("id, name").eq("organization_id", DEMO_ORGANIZATION_ID).order("name"),
+    supabase
+      .from("stores")
+      .select("id, name")
+      .eq("organization_id", DEMO_ORGANIZATION_ID)
+      .order("name"),
     supabase
       .from("customers")
       .select(
