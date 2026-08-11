@@ -20,6 +20,7 @@ export type DeliveryNote = {
   total: string;
   tone: StatusTone;
   lines: number;
+  priceIncreases: PriceComparison[];
 };
 
 export type DeliveryNoteLineDraft = {

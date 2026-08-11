@@ -20,8 +20,10 @@ type NoteRow = {
   delivery_note_items: Array<{
     comparison_status: "higher" | "lower" | "same" | "unmatched" | "review";
     quantity: number | string | null;
+    raw_description: string;
     tax_rate: number | string | null;
     unit_price: number | string | null;
+    previous_unit_price: number | string | null;
   }>;
 };
 
@@ -88,8 +90,8 @@ function mapNote(row: NoteRow): DeliveryNote {
     (sum, item) =>
       sum +
       Number(item.quantity ?? 0) *
-        Number(item.unit_price ?? 0) *
-        (1 + Number(item.tax_rate ?? 0) / 100),
+      Number(item.unit_price ?? 0) *
+      (1 + Number(item.tax_rate ?? 0) / 100),
     0,
   );
   const tone: StatusTone = hasPriceIncrease
@@ -102,6 +104,14 @@ function mapNote(row: NoteRow): DeliveryNote {
     : row.status === "validated"
       ? "Validado"
       : "Revisión necesaria";
+  const priceIncreases = row.delivery_note_items
+    .filter((item) => item.comparison_status === "higher")
+    .map((item) => ({
+      description: item.raw_description,
+      previousUnitPrice: item.previous_unit_price === null ? null : Number(item.previous_unit_price),
+      status: item.comparison_status,
+      unitPrice: item.unit_price === null ? null : Number(item.unit_price),
+    }));
 
   return {
     id: row.id,
@@ -112,6 +122,7 @@ function mapNote(row: NoteRow): DeliveryNote {
     total: currencyFormatter.format(total),
     tone,
     lines: row.delivery_note_items.length,
+    priceIncreases,
   };
 }
 
@@ -157,7 +168,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       supabase
         .from("delivery_notes")
         .select(
-          "id, document_date, status, stores(name), suppliers(name), delivery_note_items(comparison_status, quantity, tax_rate, unit_price)",
+          "id, document_date, status, stores(name), suppliers(name), delivery_note_items(comparison_status, quantity, raw_description, tax_rate, unit_price, previous_unit_price)",
         )
         .eq("organization_id", DEMO_ORGANIZATION_ID)
         .order("document_date", { ascending: false }),
@@ -195,6 +206,31 @@ export async function getDashboardData(): Promise<DashboardData> {
     customers: ((customersResult.data ?? []) as CustomerRow[]).map(mapCustomer),
     loyaltyRules: ((rulesResult.data ?? []) as LoyaltyRuleRow[]).map(ruleFromRow),
     loyaltyRewards: ((rewardsResult.data ?? []) as LoyaltyRewardRow[]).map(mapLoyaltyReward),
+  };
+}
+
+export async function getVisitTerminalData(): Promise<{
+  customers: Customer[];
+  stores: Store[];
+}> {
+  const supabase = getSupabaseAdmin();
+  const [storesResult, customersResult] = await Promise.all([
+    supabase.from("stores").select("id, name").eq("organization_id", DEMO_ORGANIZATION_ID).order("name"),
+    supabase
+      .from("customers")
+      .select(
+        "id, birthday, email, full_name, customer_consents(granted), customer_visits(occurred_at)",
+      )
+      .eq("organization_id", DEMO_ORGANIZATION_ID)
+      .order("full_name"),
+  ]);
+
+  throwIfError(storesResult.error);
+  throwIfError(customersResult.error);
+
+  return {
+    customers: ((customersResult.data ?? []) as CustomerRow[]).map(mapCustomer),
+    stores: (storesResult.data ?? []) as Store[],
   };
 }
 

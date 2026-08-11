@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { DashboardShell } from "@/components/layout/DashboardShell";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -17,9 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className={jakarta.variable}>
-        <DashboardShell>{children}</DashboardShell>
-      </body>
+      <body className={jakarta.variable}>{children}</body>
     </html>
   );
 }
