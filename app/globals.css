@@ -4613,10 +4613,139 @@ textarea {
 }
 
 .visit-terminal-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
   padding: 24px 14px;
   border: 1px dashed var(--line);
   border-radius: 14px;
   color: var(--muted);
   font-size: 13px;
   text-align: center;
+}
+
+.visit-terminal-empty .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.visit-quick-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.visit-quick-action:disabled {
+  opacity: 0.5;
+}
+
+.visit-quick-action.primary {
+  min-height: 52px;
+  border: 0;
+  background: var(--ink);
+  color: var(--white);
+}
+
+.visit-quick-action.primary:disabled {
+  opacity: 0.6;
+}
+
+.visit-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgb(20 20 20 / 42%);
+}
+
+.visit-sheet-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 21;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.visit-sheet {
+  width: 100%;
+  max-height: 92dvh;
+  overflow-y: auto;
+  padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  background: var(--white);
+  box-shadow: 0 -20px 60px rgb(0 0 0 / 20%);
+  pointer-events: auto;
+}
+
+.visit-sheet-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.visit-sheet-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.visit-sheet-heading button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--muted);
+  place-items: center;
+}
+
+.visit-sheet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.visit-sheet-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.visit-sheet-form input[type="text"],
+.visit-sheet-form input[type="email"],
+.visit-sheet-form input[type="date"] {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.visit-sheet-consent {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.visit-sheet-error {
+  margin: 0;
+  color: #8f2323;
+  font-size: 13px;
 }

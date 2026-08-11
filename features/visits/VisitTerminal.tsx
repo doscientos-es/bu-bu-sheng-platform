@@ -1,7 +1,8 @@
 "use client";
 
-import { Check, Gift, Search, Store as StoreIcon, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Dialog } from "@base-ui/react/dialog";
+import { Check, Gift, Search, Store as StoreIcon, UserPlus, X } from "lucide-react";
+import { type FormEvent, useMemo, useState } from "react";
 import type { Customer, Store } from "@/lib/types";
 
 type VisitTerminalProps = {
@@ -15,7 +16,15 @@ type Feedback = {
   detail?: string;
 };
 
+type NewCustomerForm = {
+  name: string;
+  email: string;
+  birthday: string;
+  consent: boolean;
+};
+
 const STORE_STORAGE_KEY = "visit-terminal-store";
+const EMPTY_NEW_CUSTOMER: NewCustomerForm = { name: "", email: "", birthday: "", consent: false };
 
 function normalize(value: string) {
   return value
@@ -30,24 +39,62 @@ export function VisitTerminal({ customers, stores }: VisitTerminalProps) {
     const stored = window.localStorage.getItem(STORE_STORAGE_KEY);
     return stores.some((store) => store.id === stored) ? (stored as string) : (stores[0]?.id ?? "");
   });
+  const [customerList, setCustomerList] = useState(customers);
   const [query, setQuery] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [newCustomer, setNewCustomer] = useState<NewCustomerForm | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const results = useMemo(() => {
     const term = normalize(query.trim());
-    if (!term) return customers.slice(0, 12);
-    return customers
+    if (!term) return customerList.slice(0, 12);
+    return customerList
       .filter(
         (customer) =>
           normalize(customer.name).includes(term) || normalize(customer.email).includes(term),
       )
       .slice(0, 24);
-  }, [customers, query]);
+  }, [customerList, query]);
 
   function selectStore(nextStoreId: string) {
     setStoreId(nextStoreId);
     window.localStorage.setItem(STORE_STORAGE_KEY, nextStoreId);
+  }
+
+  function openNewCustomer() {
+    setCreateError(null);
+    setNewCustomer({ ...EMPTY_NEW_CUSTOMER, name: query.trim() });
+  }
+
+  function closeNewCustomer() {
+    setNewCustomer(null);
+    setCreateError(null);
+  }
+
+  async function handleCreateCustomer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newCustomer || !storeId || isCreating) return;
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      const response = await fetch("/api/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newCustomer, storeId }),
+      });
+      const body = (await response.json()) as Customer & { error?: string };
+      if (!response.ok) throw new Error(body.error ?? "No se ha podido crear el cliente.");
+      setCustomerList((current) => [body, ...current]);
+      setQuery("");
+      setNewCustomer(null);
+      await registerVisit(body);
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : "No se ha podido crear el cliente.");
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   async function registerVisit(customer: Customer) {
@@ -125,6 +172,16 @@ export function VisitTerminal({ customers, stores }: VisitTerminalProps) {
         )}
       </label>
 
+      <button
+        type="button"
+        className="visit-quick-action"
+        disabled={!storeId}
+        onClick={openNewCustomer}
+      >
+        <UserPlus size={16} />
+        Nuevo cliente
+      </button>
+
       {feedback && (
         <p
           className={`visit-terminal-feedback ${feedback.tone}`}
@@ -161,9 +218,92 @@ export function VisitTerminal({ customers, stores }: VisitTerminalProps) {
           </li>
         ))}
         {results.length === 0 && (
-          <li className="visit-terminal-empty">No hay clientes que coincidan con la búsqueda.</li>
+          <li className="visit-terminal-empty">
+            No hay clientes que coincidan con la búsqueda.
+            <button type="button" className="text-button" onClick={openNewCustomer}>
+              <UserPlus size={14} /> Crear cliente
+            </button>
+          </li>
         )}
       </ul>
+
+      <Dialog.Root open={newCustomer !== null} onOpenChange={(open) => !open && closeNewCustomer()}>
+        <Dialog.Portal>
+          <Dialog.Backdrop className="visit-sheet-backdrop" />
+          <Dialog.Viewport className="visit-sheet-viewport">
+            <Dialog.Popup className="visit-sheet">
+              <div className="visit-sheet-heading">
+                <Dialog.Title render={<h2>Nuevo cliente</h2>} />
+                <Dialog.Close type="button" aria-label="Cerrar">
+                  <X size={18} />
+                </Dialog.Close>
+              </div>
+              {newCustomer && (
+                <form className="visit-sheet-form" onSubmit={handleCreateCustomer}>
+                  <label>
+                    Nombre
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nombre y apellidos"
+                      value={newCustomer.name}
+                      onChange={(event) =>
+                        setNewCustomer({ ...newCustomer, name: event.target.value })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      inputMode="email"
+                      required
+                      placeholder="cliente@email.com"
+                      value={newCustomer.email}
+                      onChange={(event) =>
+                        setNewCustomer({ ...newCustomer, email: event.target.value })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Cumpleaños
+                    <input
+                      type="date"
+                      required
+                      value={newCustomer.birthday}
+                      onChange={(event) =>
+                        setNewCustomer({ ...newCustomer, birthday: event.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="visit-sheet-consent">
+                    <input
+                      type="checkbox"
+                      checked={newCustomer.consent}
+                      onChange={(event) =>
+                        setNewCustomer({ ...newCustomer, consent: event.target.checked })
+                      }
+                    />
+                    Acepta recibir comunicaciones por email.
+                  </label>
+                  {createError && (
+                    <p className="visit-sheet-error" role="alert">
+                      {createError}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    className="visit-quick-action primary"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? "Guardando…" : "Guardar y registrar visita"}
+                  </button>
+                </form>
+              )}
+            </Dialog.Popup>
+          </Dialog.Viewport>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }
